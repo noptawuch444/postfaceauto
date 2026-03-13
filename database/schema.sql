@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS pages (
     page_id VARCHAR(100) UNIQUE NOT NULL,
     page_name VARCHAR(255) NOT NULL,
     page_access_token TEXT NOT NULL,
+    page_picture TEXT,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

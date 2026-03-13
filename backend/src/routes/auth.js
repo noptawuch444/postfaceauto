@@ -61,7 +61,10 @@ router.get('/setup-admin', async (req, res) => {
             ON CONFLICT (email) DO UPDATE SET password = $1;
         `, [hash]);
 
-        res.send('<h1>✅ Admin account ready!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
+        // MIGRATION: Ensure page_picture exists on the live database
+        await db.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS page_picture TEXT;`);
+
+        res.send('<h1>✅ Admin account ready & Database migrated!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
     } catch (error) {
         res.status(500).send(`<h1>❌ Error</h1><p>${error.message}</p>`);
     }

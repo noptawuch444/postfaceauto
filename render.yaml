@@ -36,10 +36,7 @@ services:
         sync: false
         placeholder: "postgresql://user:pass@host/dbname"
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: autopost-frontend
-          property: host
+        value: https://goldsyncbotface.onrender.com
       - key: FACEBOOK_APP_ID
         sync: false
       - key: FACEBOOK_APP_SECRET

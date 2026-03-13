@@ -68,6 +68,10 @@ router.get('/setup-admin', async (req, res) => {
         await db.query(`ALTER TABLE templates ADD COLUMN IF NOT EXISTS auto_reply_enabled BOOLEAN DEFAULT FALSE;`);
         await db.query(`ALTER TABLE templates ADD COLUMN IF NOT EXISTS auto_reply_text TEXT;`);
 
+        // MIGRATION: Ensure settings table and blacklist security exists
+        await db.query(`CREATE TABLE IF NOT EXISTS settings (key VARCHAR(255) PRIMARY KEY, value TEXT);`);
+        await db.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS auto_reply_text TEXT;`);
+
         res.send('<h1>✅ Admin account ready & Database migrated!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
     } catch (error) {
         res.status(500).send(`<h1>❌ Error</h1><p>${error.message}</p>`);

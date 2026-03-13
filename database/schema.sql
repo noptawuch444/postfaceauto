@@ -42,8 +42,16 @@ CREATE TABLE IF NOT EXISTS posts (
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
     fb_post_id VARCHAR(255),
     error_message TEXT,
+    auto_reply_text TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+
+CREATE TABLE IF NOT EXISTS settings (
+    key VARCHAR(255) PRIMARY KEY,
+    value TEXT
+);
+
 
 -- Default admin user (password: admin123 - bcrypt hash)
 INSERT INTO users (email, password, role) VALUES

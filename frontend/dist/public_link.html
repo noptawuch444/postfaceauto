@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldSync AutoBot | Public Scheduler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/dist/date-fns.min.js"></script>
+    <style>
+        /* ═══════════════════════════════════════════════
+           LOTTO GOLD PRO — GOLD LUXURY THEME
+           ═══════════════════════════════════════════════ */
+        :root {
+            --bg: #08080c;
+            --surface: #12120e;
+            --surface-2: #1a1a14;
+            --input-bg: #0e0e0a;
+            --border: rgba(180, 150, 60, .12);
+            --border-h: rgba(180, 150, 60, .22);
+            --gold: #c9a84c;
+            --gold-light: #e2c97e;
+            --gold-dark: #8a6d2b;
+            --gold-glow: rgba(201, 168, 76, .2);
+            --gold-shine: rgba(226, 201, 126, .08);
+            --white: #f0e8d8;
+            --gray: #a89878;
+            --muted: #786848;
+            --dim: #5a4e38;
+            --green: #5ebd72;
+            --red: #e05555;
+            --blue: #5b9bd5;
+            --r: 10px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .g {
+            width: 100vw;
+            height: 100vh;
+            background: #050508;
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .g::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, #121218 0%, #040406 100%);
+            z-index: -10;
+        }
+
+        /* ═══ SNOWFALL ═══ */
+        .g-bg-anim {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            overflow-x: hidden;
+        }
+
+        .g-canvas-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .g-corner-deco {
+            position: fixed;
+            bottom: -150px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 168, 76, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -2;
+            filter: blur(60px);
+            animation: glowPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowPulse {
+            to {
+                opacity: 0.7;
+                transform: scale(1.2);
+            }
+        }
+
+        /* ═══ NAVBAR ═══ */
+        .g-nav {
+            height: 96px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 36px;
+            z-index: 10;
+        }
+
+        .g-nav-l,
+        .g-nav-r {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .g-logo-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-h);
+            flex-shrink: 0;
+        }
+
+        .g-logo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .g-brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+
+        .g-brand span {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold);
+            background: rgba(201, 168, 76, .1);
+            border: 1px solid rgba(201, 168, 76, .25);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            letter-spacing: .5px;
+            vertical-align: middle;
+        }
+
+        .g-tpl {
+            font-size: 14px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .g-tpl b {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .g-status {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .g-status small {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            font-weight: 600;
+        }
+
+        .g-status span {
+            font-size: 15px;
+            color: var(--green);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .g-status span.live {
+            color: var(--gold);
+            filter: drop-shadow(0 0 5px rgba(201, 168, 76, 0.4));
+        }
+
+        .g-dot {
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .g-dl-btn {
+            background: rgba(201, 168, 76, .06);
+            border: 1px solid var(--border-h);
+            color: var(--gray);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .g-dl-btn:hover {
+            color: var(--gold);
+            border-color: rgba(201, 168, 76, .4);
+            background: rgba(201, 168, 76, .1);
+        }
+
+        /* ═══ BODY ═══ */
+        .g-body {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 5fr 6fr;
+            gap: 12px;
+            padding: 12px 20px;
+            overflow-x: hidden;
+            z-index: 1;
+        }
+
+        .g-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow-x: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(201, 168, 76, 0.05);
+        }
+
+        .g-panel-head {
+            height: 44px;
+            flex-shrink: 0;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1200;
+            background: linear-gradient(135deg, #d4af37 0%, #c9a84c 30%, #b8962e 60%, #a88728 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 -1px 0 rgba(0, 0, 0, .15);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, .12);
+        }
+
+        .g-scroll-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 12px 14px;
+        }
+
+        .g-scroll-box::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .g-scroll-box::-webkit-scrollbar-thumb {
+            background: rgba(201, 168, 76, 0.1);
+            border-radius: 2px;
+        }
+
+        /* ═══ FORM ═══ */
+        .g-form {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .g-fg {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .g-fg-grow {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 150px;
+        }
+
+        .g-fg label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .g-counter {
+            font-size: 12px;
+            color: var(--dim);
+            font-weight: 400;
+        }
+
+        .g-optional-badge {
+            padding: 1px 8px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #4ade80;
+            font-size: 11px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        .g-ta {
+            flex: 1;
+            min-height: 80px;
+            resize: none;
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border-h);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--white);
+            font-size: 16px;
+            line-height: 1.5;
+            outline: none;
+            transition: all .15s;
+        }
+
+        .g-ta:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+
+        /* ═══ IMAGE UPLOAD ═══ */
+        .g-img-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .g-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .g-gallery-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-h);
+            background: var(--input-bg);
+            transition: all .2s;
+        }
+
+        .g-gallery-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .g-gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .3s;
+        }
+
+        .g-gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .g-gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, .85));
+            padding: 16px 8px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .g-gallery-name {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--white);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .g-gallery-size {
+            font-size: 9px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .g-gallery-num {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 18px;
+            height: 18px;
+            background: rgba(201, 168, 76, .85);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .g-gallery-del {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 0, 0, .65);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: .15s;
+        }
+
+        .g-gallery-item:hover .g-gallery-del {
+            opacity: 1;
+        }
+
+        .g-dropzone {
+            border: 2px dashed var(--border-h);
+            border-radius: 8px;
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: all .15s;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .g-dropzone.mini {
+            padding: 4px;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .g-dropzone:hover {
+            border-color: rgba(201, 168, 76, .4);
+            background: rgba(201, 168, 76, .03);
+        }
+
+        .g-dropzone.over {
+            border-color: var(--gold);
+            background: rgba(201, 168, 76, .06);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+
+        .g-drop-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .g-drop-icon {
+            font-size: 22px;
+        }
+
+        .g-drop-text {
+            font-size: 14px;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .g-drop-text b {
+            color: var(--gold);
+        }
+
+        .g-drop-sub {
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        /* ═══ ORDER SELECTOR ═══ */
+        .g-order-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 4px 0 8px;
+        }
+
+        .g-order-option {
+            background: rgba(201, 168, 76, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            color: var(--gray);
+        }
+
+        .g-order-option:hover {
+            background: rgba(201, 168, 76, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .g-order-option.active {
+            background: rgba(201, 168, 76, 0.08);
+            border: 2px solid var(--gold);
+            color: var(--gold-light);
+            box-shadow: 0 4px 15px rgba(201, 168, 76, 0.15);
+        }
+
+        .g-order-preview {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        .g-p-txt,
+        .g-p-img {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+
+        .g-p-txt {
+            background: rgba(91, 155, 213, 0.15);
+            color: var(--blue);
+            border-color: rgba(91, 155, 213, 0.3);
+        }
+
+        .g-p-img {
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold);
+            border-color: rgba(201, 168, 76, 0.3);
+        }
+
+        .g-p-arr {
+            font-size: 12px;
+            color: var(--dim);
+        }
+
+        /* ═══ TIME PICKER ═══ */
+        .g-custom-time {
+            position: relative;
+            width: 100%;
+            min-height: 52px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-h);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+        .g-custom-time:focus-within {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+
+        .g-native-picker {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+            color-scheme: dark;
+        }
+
+        .g-time-display {
+            padding: 0 16px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .g-time-val {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .g-t-date {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gold-light);
+        }
+
+        .g-t-sep {
+            color: var(--dim);
+            opacity: .5;
+        }
+
+        .g-t-hour {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--white);
+            background: rgba(201, 168, 76, .1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .g-time-placeholder {
+            color: var(--muted);
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        .g-time-edit-hint {
+            font-size: 12px;
+            color: var(--dim);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* ═══ ACTIONS ═══ */
+        .g-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .g-btn-save {
+            flex: 2;
+            padding: 11px 4px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: #c9a84c;
+            color: #1a1200;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .g-btn-save:hover {
+            transform: translateY(-2px);
+            background: #d4af37;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+        }
+
+        .g-btn-preview {
+            flex: 1.2;
+            background: rgba(201, 168, 76, 0.05);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            color: var(--gold-light);
+            padding: 11px 4px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .g-btn-preview:hover {
+            background: rgba(201, 168, 76, 0.12);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .g-btn-clear {
+            flex: 1;
+            padding: 11px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border-h);
+            background: rgba(201, 168, 76, .04);
+            color: var(--gray);
+            cursor: pointer;
+            transition: .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .g-btn-clear:hover {
+            background: rgba(201, 168, 76, .08);
+            color: var(--gold-light);
+        }
+
+        /* ═══ LIST & HISTORY ═══ */
+        .g-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 14px;
+        }
+
+        .g-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .g-list::-webkit-scrollbar-thumb {
+            background: rgba(201, 168, 76, .12);
+            border-radius: 4px;
+        }
+
+        .g-empty {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .g-dg-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 12px;
+            margin: 6px 0 5px;
+            background: rgba(20, 20, 15, .95);
+            border-radius: 6px;
+            border-left: 3px solid var(--gold);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--gold);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .g-dg-bar:hover {
+            background: rgba(30, 30, 25, .98);
+            border-left-width: 5px;
+        }
+
+        .g-dg-n {
+            font-size: 12px;
+            color: var(--dim);
+            background: rgba(201, 168, 76, .06);
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-weight: 400;
+        }
+
+        .g-msg {
+            background: rgba(18, 18, 14, .7);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all .15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .g-msg::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .g-msg.st-pending::before {
+            background: var(--gold);
+        }
+
+        .g-msg.st-sent::before {
+            background: var(--green);
+        }
+
+        .g-msg:hover {
+            background: rgba(26, 26, 20, .95);
+            border-color: rgba(201, 168, 76, .25);
+            transform: translateY(-1px);
+        }
+
+        .g-msg-r1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3px;
+        }
+
+        .g-st {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .g-st.st-pending {
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            color: var(--gold);
+        }
+
+        .g-msg-time {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .g-item-del {
+            color: var(--red);
+            background: rgba(224, 85, 85, .08);
+            border: 1px solid rgba(224, 85, 85, .2);
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .g-msg-text {
+            font-size: 15px;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ═══ MODAL ═══ */
+        .g-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 2000;
+        }
+
+        .g-modal-content {
+            background: #0d0d0d;
+            border: 11px solid #1a1a1a;
+            border-radius: 44px;
+            width: 310px;
+            height: 620px;
+            max-height: 85vh;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, .8), 0 0 40px rgba(201, 168, 76, .15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .g-modal-content::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 45%, rgba(255, 255, 255, 0.05) 50%, transparent 55%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .g-modal-content::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 22px;
+            background: #000;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 20;
+            box-shadow: inset 0 -2px 4px rgba(255, 255, 255, 0.05);
+        }
+
+        .g-modal-head {
+            padding: 24px 18px 6px;
+            background: #1a1a1a;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 60px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 15;
+        }
+
+        .g-phone-time {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .g-phone-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .g-chat-header {
+            background: #2c3e50;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .g-modal-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            letter-spacing: 0.3px;
+        }
+
+        .g-modal-close {
+            background: rgba(255, 255, 255, .1);
+            border: none;
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .g-modal-close:hover {
+            background: rgba(255, 255, 255, .2);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .g-modal-body {
+            flex: 1;
+            background: #849ebc;
+            overflow-y: auto;
+        }
+
+        .g-modal-body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .g-phone-home-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            z-index: 30;
+        }
+
+        .line-chat {
+            padding: 20px 12px 60px;
+            flex: 1;
+        }
+
+        .line-msg-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .line-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .line-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .line-bot-name {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .line-bubbles {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-width: 210px;
+        }
+
+        .line-bubble-text {
+            background: #fff;
+            color: #000;
+            padding: 7px 11px;
+            border-radius: 14px;
+            border-top-left-radius: 2px;
+            font-size: 13px;
+            line-height: 1.4;
+            word-break: break-all;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-bubble-img {
+            border-radius: 6px;
+            overflow: hidden;
+            line-height: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-bubble-img img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .line-bubble-empty {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            padding: 8px;
+        }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 900px) {
+            .g {
+                overflow: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .g-nav {
+                height: auto;
+                flex-direction: column;
+                padding: 20px;
+                gap: 15px;
+            }
+
+            .g-nav-l,
+            .g-nav-r {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .g-status {
+                align-items: center;
+            }
+
+            .g-body {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: visible;
+                padding: 10px;
+            }
+
+            .g-panel {
+                height: auto;
+                min-height: 400px;
+            }
+
+            .g-gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .g-actions {
+                flex-direction: column;
+            }
+
+            .g-btn-save,
+            .g-btn-clear,
+            .g-btn-preview {
+                width: 100%;
+            }
+
+            .g-tpl {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="g">
+        <div class="g-bg-anim"><canvas id="snow-canvas" class="g-canvas-bg"></canvas></div>
+        <div class="g-corner-deco"></div>
+
+        <header class="g-nav">
+            <div class="g-nav-l">
+                <div class="g-logo-wrap"><img src="/logo.jpg" alt="Logo"></div>
+                <div>
+                    <div class="g-brand">GoldSync AutoBot <span>AUTOBOT</span></div>
+                    <div class="g-tpl"><i data-lucide="file-text" style="width:14px"></i> เทมเพลต: <b
+                            id="tpl-name">GoldSync</b></div>
+                </div>
+            </div>
+            <div class="g-nav-r">
+                <div class="g-status">
+                    <small id="timer-label">สถานะระบบ</small>
+                    <span class="live">
+                        <div class="g-dot"></div> <span id="timer-val">พร้อมใช้งาน</span>
+                    </span>
+                </div>
+                <button class="g-dl-btn" onclick="window.open('https://line.me/R/ti/p/@your_id','_blank')">
+                    <i data-lucide="headset" style="width:16px; margin-right:6px; vertical-align:middle"></i>
+                    ติดต่อแอดมิน
+                </button>
+            </div>
+        </header>
+
+        <main class="g-body">
+            <!-- PORTED FORM PANEL -->
+            <section class="g-panel">
+                <div class="g-panel-head">
+                    <div class="g-panel-title"><i data-lucide="pencil-line"></i><span>สร้างรายการใหม่</span></div>
+                    <button class="g-btn-ref" onclick="location.reload()">รีเฟรช</button>
+                </div>
+                <div class="g-scroll-box">
+                    <form id="schedule-form" class="g-form">
+                        <div class="g-fg g-fg-grow">
+                            <label>ข้อความ <span class="g-counter" id="char-count">(0 ตัวอักษร)</span></label>
+                            <textarea id="inp-content" placeholder="พิมพ์ข้อความที่ต้องการส่ง..."
+                                class="g-ta"></textarea>
+                        </div>
+
+                        <div class="g-fg">
+                            <label>รูปภาพ <span class="g-counter" id="img-count">(0/3)</span></label>
+                            <div class="g-img-area">
+                                <div class="g-gallery" id="gallery-grid">
+                                    <!-- Rendered by JS -->
+                                </div>
+                                <div class="g-dropzone" id="dropzone"
+                                    onclick="document.getElementById('file-input').click()">
+                                    <input type="file" id="file-input" multiple accept="image/*" hidden
+                                        onchange="handleFiles(event)">
+                                    <div class="g-drop-content">
+                                        <div class="g-drop-icon"><i data-lucide="image"></i></div>
+                                        <div class="g-drop-text">ลากไฟล์มาวาง หรือ <b>คลิกเลือก</b></div>
+                                        <div class="g-drop-sub">รองรับ JPG, PNG (สูงสุด 3 รูป)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="g-fg">
+                            <label><i data-lucide="image" style="width:14px"></i> ลำดับการส่ง</label>
+                            <div class="g-order-selector">
+                                <button type="button" class="g-order-option active" id="order-text"
+                                    onclick="setOrder(false)">
+                                    <div class="g-order-preview">
+                                        <div class="g-p-txt">TEXT</div>
+                                        <div class="g-p-arr">→</div>
+                                        <div class="g-p-img">IMG</div>
+                                    </div>
+                                    <span>ส่งข้อความก่อน</span>
+                                </button>
+                                <button type="button" class="g-order-option" id="order-img" onclick="setOrder(true)">
+                                    <div class="g-order-preview">
+                                        <div class="g-p-img">IMG</div>
+                                        <div class="g-p-arr">→</div>
+                                        <div class="g-p-txt">TEXT</div>
+                                    </div>
+                                    <span>ส่งรูปภาพก่อน</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="g-fg">
+                            <label><i data-lucide="clock" style="width:16px"></i> เวลาส่ง</label>
+                            <div class="g-custom-time" onclick="document.getElementById('inp-time').showPicker()">
+                                <input type="datetime-local" id="inp-time" class="g-native-picker"
+                                    onchange="updateTimeDisplay()">
+                                <div class="g-time-display">
+                                    <div class="g-time-val" id="time-display-val">
+                                        <div class="g-time-placeholder">เลือกเวลา -- : --</div>
+                                    </div>
+                                    <div class="g-time-edit-hint">แก้ไข</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="g-actions">
+                            <button type="submit" class="g-btn-save" id="btn-submit">
+                                <i data-lucide="save"></i> <span>บันทึกข้อความการจอง</span>
+                            </button>
+                            <button type="button" class="g-btn-preview" onclick="showModal(true)">
+                                <i data-lucide="eye"></i> <span>ตัวอย่าง</span>
+                            </button>
+                            <button type="button" class="g-btn-clear" onclick="resetForm()">
+                                <i data-lucide="trash-2"></i> <span>เคลียร์</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- PORTED LIST PANEL -->
+            <section class="g-panel">
+                <div class="g-panel-head">
+                    <div class="g-panel-title"><i data-lucide="clipboard-list"></i><span>รายการรวมทั้งหมด</span></div>
+                </div>
+                <div class="g-list" id="history-list">
+                    <div class="g-empty">
+                        <div class="g-empty-icon"><i data-lucide="inbox" style="width:48px;height:48px"></i></div>
+                        <p>ยังไม่มีข้อความ</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PREVIEW MODAL -->
+    <div class="g-modal-overlay" id="preview-modal" onclick="showModal(false)">
+        <div class="g-modal-content" onclick="event.stopPropagation()">
+            <div class="g-modal-head">
+                <div class="g-phone-time" id="phone-time">12:00</div>
+                <div class="g-phone-icons">
+                    <i data-lucide="signal" style="width:12px"></i>
+                    <i data-lucide="wifi" style="width:12px"></i>
+                    <i data-lucide="battery-full" style="width:14px"></i>
+                </div>
+            </div>
+            <div class="g-chat-header">
+                <div class="g-modal-title">LINE Preview</div>
+                <button class="g-modal-close" onclick="showModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            <div class="g-modal-body">
+                <div class="line-chat">
+                    <div class="line-msg-row">
+                        <div class="line-avatar"><img src="/logo.jpg" alt=""></div>
+                        <div class="line-content">
+                            <div class="line-bot-name">GoldSync AutoBot</div>
+                            <div class="line-bubbles" id="modal-bubbles">
+                                <!-- Bubbles injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="g-phone-home-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- LUCIDE INIT ---
+        lucide.createIcons();
+
+        // --- STATE ---
+        let files = [];
+        let imageFirst = false;
+        let history = [];
+        const IMGBB_KEY = 'b2285e5c017d5cac2c3ac8883a747748';
+
+        // --- SNOWFALL EFFECT (Enhanced Visibility) ---
+        function initSnow() {
+            const canvas = document.getElementById('snow-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
+            const flakeCount = 100; // Increased count
+            const goldShades = [
+                '#ffe082', // Bright Yellow
+                '#c9a84c', // Gold
+                '#fff9c4', // Light Yellow
+                '#ffd700'  // Pure Gold
+            ];
+            const flakes = Array.from({ length: flakeCount }, () => ({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: Math.random() * 3 + 2, // Bigger size
+                d: Math.random() * flakeCount,
+                s: (Math.random() * 2 + 1) * 0.8, // Faster falling
+                color: goldShades[Math.floor(Math.random() * goldShades.length)],
+                opacity: Math.random() * 0.5 + 0.4
+            }));
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                flakes.forEach(f => {
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                    ctx.fillStyle = f.color;
+                    ctx.globalAlpha = f.opacity;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = f.color;
+                    ctx.fill();
+                    f.y += f.s;
+                    f.x += Math.sin(f.d) * 0.5;
+                    if (f.y > h) { f.y = -20; f.x = Math.random() * w; }
+                });
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(draw);
+            }
+            draw();
+            window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+        }
+        initSnow();
+
+        // --- FORM LOGIC ---
+        function handleFiles(e) {
+            const newFiles = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+            if (files.length + newFiles.length > 3) {
+                alert('อัปโหลดรูปภาพได้สูงสุด 3 รูปครับ');
+                return;
+            }
+            newFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    files.push({ file, preview: re.target.result });
+                    renderGallery();
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('gallery-grid');
+            const dropzone = document.getElementById('dropzone');
+
+            grid.innerHTML = files.map((f, i) => `
+                <div class="g-gallery-item">
+                    <img src="${f.preview}" alt="">
+                    <div class="g-gallery-overlay">
+                        <span class="g-gallery-name">${f.file.name}</span>
+                        <span class="g-gallery-size">${(f.file.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <div class="g-gallery-del" onclick="removeFile(${i})"><i data-lucide="x" style="width:12px"></i></div>
+                    <div class="g-gallery-num">${i + 1}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('img-count').textContent = `(${files.length}/3)`;
+            if (files.length >= 3) {
+                dropzone.style.display = 'none';
+                grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            } else {
+                dropzone.style.display = 'flex';
+                dropzone.className = files.length > 0 ? 'g-dropzone mini' : 'g-dropzone';
+                grid.style.gridTemplateColumns = `repeat(${files.length}, 1fr) 1fr`;
+            }
+            lucide.createIcons();
+        }
+
+        function setOrder(isImgFirst) {
+            imageFirst = isImgFirst;
+            document.getElementById('order-text').classList.toggle('active', !isImgFirst);
+            document.getElementById('order-img').classList.toggle('active', isImgFirst);
+        }
+
+        function updateTimeDisplay() {
+            const val = document.getElementById('inp-time').value;
+            const display = document.getElementById('time-display-val');
+            if (val) {
+                const d = new Date(val);
+                const dateStr = d.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const timeStr = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+                display.innerHTML = `
+                    <div class="g-time-val">
+                        <span class="g-t-date">${dateStr}</span>
+                        <span class="g-t-sep">—</span>
+                        <span class="g-t-hour">${timeStr} น.</span>
+                    </div>
+                `;
+            } else {
+                display.innerHTML = '<div class="g-time-placeholder">เลือกเวลา -- : --</div>';
+            }
+        }
+
+        function showModal(show) {
+            const modal = document.getElementById('preview-modal');
+            modal.style.display = show ? 'flex' : 'none';
+            if (show) {
+                document.getElementById('phone-time').textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+                const bubbles = document.getElementById('modal-bubbles');
+                const text = document.getElementById('inp-content').value;
+
+                let html = '';
+                const textHtml = text ? `<div class="line-bubble-text">${text.replace(/\n/g, '<br>')}</div>` : '';
+                const imgHtml = files.map(f => `<div class="line-bubble-img"><img src="${f.preview}"></div>`).join('');
+
+                if (imageFirst) html = imgHtml + textHtml;
+                else html = textHtml + imgHtml;
+
+                bubbles.innerHTML = html || '<div class="line-bubble-empty">กำลังพิมพ์...</div>';
+                lucide.createIcons();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('schedule-form').reset();
+            files = [];
+            renderGallery();
+            updateTimeDisplay();
+            document.getElementById('char-count').textContent = '(0 ตัวอักษร)';
+        }
+
+        document.getElementById('inp-content').oninput = (e) => {
+            document.getElementById('char-count').textContent = `(${e.target.value.length} ตัวอักษร)`;
+        };
+
+        // --- SUBMIT ---
+        document.getElementById('schedule-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('inp-content').value;
+            const time = document.getElementById('inp-time').value;
+
+            if (!content && files.length === 0) return alert('กรุณาใส่ข้อความหรือรูปภาพประกอบครับ');
+            if (!time) return alert('กรุณาเลือกเวลาที่จะส่งข้อความครับ');
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="g-spin"></i> <span>กำลังบันทึก...</span>';
+            lucide.createIcons();
+
+            try {
+                // Mock behavior matching real system
+                const item = {
+                    id: 'msg-' + Date.now(),
+                    content,
+                    scheduledTime: time,
+                    status: 'pending',
+                    fileCount: files.length
+                };
+                history.unshift(item);
+                setTimeout(() => {
+                    renderHistory();
+                    resetForm();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="save"></i> <span>บันทึกข้อความการจอง</span>';
+                    lucide.createIcons();
+                    alert('✅ ตั้งเวลาส่งข้อความเรียบร้อยแล้วครับ!');
+                }, 800);
+            } catch (err) {
+                alert('เกิดข้อผิดพลาด: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save"></i> <span>บันทึกข้อความการจอง</span>';
+                lucide.createIcons();
+            }
+        };
+
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            if (history.length === 0) return;
+
+            container.innerHTML = `
+                <div class="g-dg">
+                    <div class="g-dg-bar">
+                        <div class="g-dg-label"><i data-lucide="calendar" style="width:14px"></i> รายการจองล่าสุด</div>
+                        <span class="g-dg-n">${history.length} รายการ</span>
+                    </div>
+                    ${history.map(m => `
+                        <div class="g-msg st-pending">
+                            <div class="g-msg-r1">
+                                <span class="g-st st-pending"><i data-lucide="hourglass" style="width:14px"></i> รอส่ง</span>
+                                <span class="g-msg-time"><i data-lucide="clock" style="width:12px"></i> ${new Date(m.scheduledTime).toLocaleString('th-TH')}</span>
+                            </div>
+                            <div class="g-msg-text">${m.content || '(ส่งเฉพาะรูปภาพ)'}</div>
+                            ${m.fileCount > 0 ? `<div style="font-size:12px; color:var(--gold); margin-top:4px">+ แนบรูปภาพ ${m.fileCount} รูป</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Set default time to +30 mins
+        const defaultTime = new Date();
+        defaultTime.setMinutes(defaultTime.getMinutes() + 30);
+        document.getElementById('inp-time').value = defaultTime.toISOString().slice(0, 16);
+        updateTimeDisplay();
+    </script>
+</body>
+
+</html>

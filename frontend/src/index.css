@@ -1,0 +1,494 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gs-primary: #C9A84C;
+  --gs-primary-dark: #A68A3D;
+  --gs-primary-light: #E2C97E;
+  --gs-bg-main: #0B0B0F;
+  --gs-bg-sec: #121218;
+  --gs-border: rgba(201, 168, 76, 0.15);
+  --gs-text: #FFFFFF;
+  --gs-text-muted: #9494B8;
+  --gs-success: #10B981;
+  --gs-danger: #EF4444;
+  --gs-pending: #F59E0B;
+  --gs-font-thai: 'Prompt', sans-serif;
+}
+
+.gs-btn-thai {
+  font-family: var(--gs-font-thai) !important;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--gs-bg-main);
+  color: var(--gs-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.gs-public-page {
+  /* Public-specific layout constraints only */
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Animations only for public if needed, but keeping global for components */
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 1;
+    /* Safety: Don't start at 0 */
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes nav-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Components */
+.gs-card {
+  background: var(--gs-bg-sec);
+  border: 1px solid var(--gs-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gs-card:hover {
+  border-color: rgba(201, 168, 76, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.gs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.gs-btn-primary {
+  background: var(--gs-primary);
+  color: #000;
+}
+
+.gs-btn-primary:hover {
+  background: var(--gs-primary-light);
+  transform: translateY(-1px);
+}
+
+.gs-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--gs-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: white;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.gs-input:focus {
+  border-color: var(--gs-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 168, 76, 0.4);
+}
+
+/* Status Badges */
+.gs-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.gs-badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--gs-success);
+}
+
+.gs-badge-pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--gs-pending);
+}
+
+.gs-badge-failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--gs-danger);
+}
+
+/* Layouts */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: #0d0d12;
+  border-right: 1px solid var(--gs-border);
+  padding: 24px;
+  flex-shrink: 0;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.public-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+
+/* ================================================================
+   RESPONSIVE DESIGN — GoldSync AutoBot Public Page
+   Mobile : < 640px | Tablet : 640-1023px
+   Laptop : 1024-1279px | Desktop : 1280px+
+   Uses !important to safely override inline React styles
+   ================================================================ */
+
+/* ── Prevent horizontal overflow on public page ── */
+.gs-public-page {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ── Thin scrollbar ── */
+.gs-history-scroll-area,
+.gs-post-form-section>div:last-child {
+  scrollbar-width: thin;
+}
+
+/* ── 1-column grid on tablet/mobile ── */
+@media (max-width: 1023px) {
+  .gs-public-page .gs-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ================================================================
+   MOBILE  (< 640px)
+   ================================================================ */
+@media (max-width: 639px) {
+
+  /* Constrain all children to viewport width */
+  .gs-public-page * {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Header: compact but keep all elements visible */
+  .gs-public-header {
+    height: auto !important;
+    min-height: 56px !important;
+    padding: 10px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+
+  .gs-public-header>div {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* Content wrapper: tight padding */
+  .gs-content-wrapper {
+    padding: 12px !important;
+    gap: 12px !important;
+    overflow: hidden !important;
+    /* Protect from decorative dots overflow */
+  }
+
+  /* Grid gap */
+  .gs-main-grid {
+    gap: 12px !important;
+  }
+
+  /* Form card: auto height (natural scroll) */
+  .gs-post-form-section>div:last-child {
+    height: 480px !important;
+    max-height: 480px !important;
+    overflow-y: auto !important;
+  }
+
+  /* History card: equal to form */
+  .gs-history-scroll-area {
+    height: 480px !important;
+    max-height: 480px !important;
+  }
+
+  /* Prevent history item rows from overflowing horizontally */
+  .gs-history-scroll-area>div>div>div {
+    overflow: hidden !important;
+    word-break: break-word !important;
+    min-width: 0 !important;
+  }
+
+  /* Action buttons: 1 column stack */
+  .gs-actions-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Image thumbnails: smaller */
+  .gs-image-scroller>div {
+    width: 100px !important;
+    min-height: 100px !important;
+  }
+
+  /* Ensure labels are visible (Override any previous hide rules) */
+  .gs-item-count,
+  .gs-public-header>div:first-child+div>div:first-child {
+    display: flex !important;
+  }
+}
+
+/* ================================================================
+   TABLET  (640px – 1023px)
+   ================================================================ */
+@media (min-width: 640px) and (max-width: 1023px) {
+
+  .gs-public-page {
+    overflow-x: hidden !important;
+  }
+
+  /* Header */
+  .gs-public-header {
+    height: auto !important;
+    min-height: 72px !important;
+    padding: 12px 20px !important;
+  }
+
+  /* Content wrapper */
+  .gs-content-wrapper {
+    padding: 16px 20px !important;
+    gap: 16px !important;
+  }
+
+  .gs-main-grid {
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: 1000px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Form card: equal height */
+  .gs-post-form-section>div:last-child {
+    height: 520px !important;
+    max-height: 520px !important;
+    overflow-y: auto !important;
+  }
+
+  /* History card: equal height */
+  .gs-history-scroll-area {
+    height: 520px !important;
+    max-height: 520px !important;
+    padding-right: 4px !important;
+    /* Prevent content hitting edge */
+  }
+
+  /* Prevent history overflow */
+  .gs-history-scroll-area>div>div>div {
+    overflow: hidden !important;
+    min-width: 0 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Action buttons: 3 columns */
+  .gs-actions-grid {
+    grid-template-columns: 1.5fr 1fr 1fr !important;
+  }
+
+  .gs-image-scroller>div {
+    width: 120px !important;
+  }
+}
+
+/* ================================================================
+   LAPTOP  (1024px – 1279px)
+   ================================================================ */
+@media (min-width: 1024px) and (max-width: 1279px) {
+
+  .gs-main-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .gs-post-form-section>div:last-child {
+    height: 580px !important;
+    max-height: 580px !important;
+  }
+
+  .gs-history-scroll-area {
+    height: 580px !important;
+    max-height: 580px !important;
+  }
+
+  .gs-public-header {
+    padding: 0 24px !important;
+  }
+
+  .gs-content-wrapper {
+    padding: 24px 40px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .gs-public-page .gs-main-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* ================================================================
+   DESKTOP  (1280px+)
+   ================================================================ */
+@media (min-width: 1280px) {
+
+  .gs-main-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .gs-post-form-section>div:last-child {
+    height: 700px !important;
+    max-height: 700px !important;
+  }
+
+  .gs-history-scroll-area {
+    height: 700px !important;
+    max-height: 700px !important;
+  }
+
+  .gs-public-header {
+    padding: 0 40px !important;
+  }
+
+  .gs-content-wrapper {
+    padding: 32px 40px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    flex: 1 !important;
+  }
+
+  .gs-public-page .gs-main-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: 1400px !important;
+    /* Cap grid width but center it */
+    margin: 0 auto !important;
+  }
+}

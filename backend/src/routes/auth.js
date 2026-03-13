@@ -44,12 +44,24 @@ router.get('/me', authMiddleware, async (req, res) => {
 // GET /api/auth/setup-admin (Temporary setup route)
 router.get('/setup-admin', async (req, res) => {
     try {
+        const bcrypt = require('bcryptjs');
+        const hash = await bcrypt.hash('admin123', 10);
+
+        // Ensure the tables exist first
         const fs = require('fs');
         const path = require('path');
         const schemaPath = path.join(__dirname, '..', '..', '..', 'database', 'schema.sql');
         const schema = fs.readFileSync(schemaPath, 'utf8');
         await db.query(schema);
-        res.send('<h1>✅ Database setup complete!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
+
+        // Force UPSERT the admin user with the CORRECT dynamically generated hash
+        await db.query(`
+            INSERT INTO users (email, password, role) 
+            VALUES ('admin@autopost.com', $1, 'admin')
+            ON CONFLICT (email) DO UPDATE SET password = $1;
+        `, [hash]);
+
+        res.send('<h1>✅ Admin account ready!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
     } catch (error) {
         res.status(500).send(`<h1>❌ Error</h1><p>${error.message}</p>`);
     }

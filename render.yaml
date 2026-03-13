@@ -1,6 +1,6 @@
 services:
   # Frontend: Static Site
-  - type: static
+  - type: web
     name: autopost-frontend
     env: static
     rootDir: frontend

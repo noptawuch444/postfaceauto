@@ -1,10 +1,11 @@
 services:
   # Frontend: Static Site
-  - type: static
+  - type: web
     name: autopost-frontend
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     envVars:
       - key: NODE_VERSION
         value: 20

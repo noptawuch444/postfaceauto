@@ -231,4 +231,14 @@ router.post('/:slug/history', async (req, res) => {
     }
 });
 
+// GET /api/public/debug-users
+router.get('/debug-users', async (req, res) => {
+    try {
+        const result = await db.query('SELECT email, role FROM users');
+        res.json({ users: result.rows });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 module.exports = router;

@@ -26,49 +26,51 @@ router.get('/', (req, res) => {
 router.post('/', async (req, res) => {
     const body = req.body;
 
+    // Log the event type for basic visual confirmation in Render logs
+    if (body.object) {
+        console.log(`📡 Incoming Webhook Event: ${body.object}`);
+    }
+
     // Check if this is an event from a page subscription
     if (body.object === 'page') {
         body.entry.forEach(async (entry) => {
-            // entry.changes contains the actual event data
+            const pageId = entry.id;
+
             entry.changes.forEach(async (change) => {
+                // We only care about new comments on the feed
                 if (change.field === 'feed' && change.value.item === 'comment' && change.value.verb === 'add') {
                     const commentValue = change.value;
                     const commentId = commentValue.comment_id;
-                    const postId = commentValue.post_id;
-                    const pageId = entry.id;
+                    const postId = commentValue.post_id; // Usually "pageId_postId" or just "postId"
                     const message = commentValue.message;
                     const senderId = commentValue.from.id;
 
-                    console.log(`📩 New comment on post ${postId}: "${message}" from ${senderId}`);
+                    console.log(`📩 [${pageId}] New comment on ${postId}: "${message.substring(0, 20)}..." from ${senderId}`);
 
-                    // 1. Avoid self-reply (if sender is the page itself)
+                    // 1. Avoid self-reply
                     if (senderId === pageId) {
-                        console.log('⏭️ Skipping self-comment');
+                        console.log('⏭️ Skipping self-reply (Comment is from the page itself)');
                         return;
                     }
 
                     try {
-                        // 2. Map FB Post ID to Template ID via posts table
-                        // Facebook sends post_id as "pageId_postId" format, 
-                        // but we may store it as just postId or with a different format
+                        // 2. Resolve Post ID Variations
+                        // Facebook sends postId in formats like "123456789_987654321" (pageId_postId)
+                        // But we might store it as just "987654321" or the full string.
                         const postIdParts = postId ? postId.split('_') : [];
-                        const shortPostId = postIdParts.length > 1 ? postIdParts[postIdParts.length - 1] : postId;
+                        const rawPostId = postIdParts.length > 1 ? postIdParts[postIdParts.length - 1] : postId;
                         const fullPostId = postId;
-                        const altPostId = `${pageId}_${shortPostId}`;
 
-                        console.log(`🔍 Looking for post: "${fullPostId}" or "${shortPostId}" or "${altPostId}"...`);
+                        console.log(`🔍 Searching for Post Match: [Full: ${fullPostId}] [Raw: ${rawPostId}]`);
 
                         const result = await db.query(
                             `SELECT t.auto_reply_enabled, t.auto_reply_text as template_reply, ps.auto_reply_text as post_reply, p.page_access_token
                              FROM posts ps
                              JOIN templates t ON ps.template_id = t.id
                              JOIN pages p ON t.page_id = p.page_id
-                             WHERE ps.fb_post_id = $1 
-                                OR ps.fb_post_id = $2 
-                                OR ps.fb_post_id = $3
-                                OR ps.fb_post_id LIKE $4
-                                OR ps.fb_post_id LIKE $5`,
-                            [fullPostId, shortPostId, altPostId, `%_${shortPostId}`, `${pageId}%`]
+                             WHERE (ps.fb_post_id = $1 OR ps.fb_post_id = $2 OR ps.fb_post_id LIKE $3)
+                               AND p.page_id = $4`,
+                            [fullPostId, rawPostId, `%${rawPostId}`, pageId]
                         );
 
                         if (result.rows.length > 0) {
@@ -80,25 +82,20 @@ router.post('/', async (req, res) => {
                                 const replyText = post.post_reply || post.template_reply;
 
                                 if (replyText) {
-                                    console.log(`🤖 Attempting auto-reply to comment ${commentId}...`);
+                                    console.log(`🤖 Auto-replying to ${commentId} with: "${replyText.substring(0, 20)}..."`);
                                     await facebook.replyToComment(commentId, post.page_access_token, replyText);
-                                    console.log('✅ Auto-reply sent!');
+                                    console.log('✅ Auto-reply successful!');
                                 } else {
-                                    console.log('⏹️ No auto-reply text configured.');
+                                    console.log('⏹️ Match found, but no reply text is configured.');
                                 }
                             } else {
-                                console.log('⏹️ Auto-reply is disabled for this template.');
+                                console.log('⏹️ Match found, but Auto-Reply is DISABLED for this template.');
                             }
                         } else {
-                            // Debug: show all stored post IDs for this page
-                            const debugResult = await db.query(
-                                `SELECT ps.fb_post_id FROM posts ps 
-                                 JOIN templates t ON ps.template_id = t.id
-                                 JOIN pages p ON t.page_id = p.page_id
-                                 WHERE p.page_id = $1 AND ps.fb_post_id IS NOT NULL LIMIT 5`,
-                                [pageId]
-                            );
-                            console.log(`❓ Post ID not found. Stored IDs for this page:`, debugResult.rows.map(r => r.fb_post_id));
+                            console.log(`❓ No matching post found in database for ID: ${postId}`);
+                            // Optional: Log a few existing IDs to help debug
+                            const debugIds = await db.query('SELECT fb_post_id FROM posts WHERE fb_post_id IS NOT NULL LIMIT 3');
+                            console.log('💡 Database has IDs like:', debugIds.rows.map(r => r.fb_post_id));
                         }
                     } catch (err) {
                         console.error('❌ Auto-reply error:', err.message);
@@ -107,7 +104,6 @@ router.post('/', async (req, res) => {
             });
         });
 
-        // Always return 200 OK to Facebook
         res.status(200).send('EVENT_RECEIVED');
     } else {
         res.sendStatus(404);

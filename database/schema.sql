@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS templates (
     password VARCHAR(255) NOT NULL,
     expire_date TIMESTAMP NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
+    auto_reply_enabled BOOLEAN DEFAULT FALSE,
+    auto_reply_text TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 

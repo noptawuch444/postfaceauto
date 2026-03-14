@@ -87,4 +87,25 @@ router.post('/manual-connect', async (req, res) => {
     }
 });
 
+// GET /api/facebook/sync-webhooks - Force subscribe all connected pages to the webhook
+router.get('/sync-webhooks', async (req, res) => {
+    try {
+        const result = await db.query('SELECT page_id, page_name, page_access_token FROM pages');
+        const summary = [];
+
+        for (const page of result.rows) {
+            try {
+                await facebook.subscribePageToWebhook(page.page_id, page.page_access_token);
+                summary.push({ page: page.page_name, status: '✅ Subscribed' });
+            } catch (err) {
+                summary.push({ page: page.page_name, status: `❌ Failed: ${err.message}` });
+            }
+        }
+
+        res.json({ success: true, summary });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

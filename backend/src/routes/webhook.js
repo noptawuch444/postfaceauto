@@ -92,10 +92,36 @@ router.post('/', async (req, res) => {
                                 console.log('⏹️ Match found, but Auto-Reply is DISABLED for this template.');
                             }
                         } else {
-                            console.log(`❓ No matching post found in database for ID: ${postId}`);
-                            // Optional: Log a few existing IDs to help debug
-                            const debugIds = await db.query('SELECT fb_post_id FROM posts WHERE fb_post_id IS NOT NULL LIMIT 3');
-                            console.log('💡 Database has IDs like:', debugIds.rows.map(r => r.fb_post_id));
+                            console.log(`❓ No specific post match for ID: ${postId}. Trying fallback (Page-wide active template)...`);
+
+                            // FALLBACK: If no specific post ID matches (e.g. manually posted on FB), 
+                            // find the most recently created template for this page that has auto-reply enabled.
+                            const fallbackResult = await db.query(
+                                `SELECT t.auto_reply_enabled, t.auto_reply_text as template_reply, p.page_access_token
+                                 FROM templates t
+                                 JOIN pages p ON t.page_id = p.page_id
+                                 WHERE p.page_id = $1 AND t.auto_reply_enabled = true
+                                 ORDER BY t.created_at DESC LIMIT 1`,
+                                [pageId]
+                            );
+
+                            if (fallbackResult.rows.length > 0) {
+                                const template = fallbackResult.rows[0];
+                                const replyText = template.template_reply;
+
+                                if (replyText) {
+                                    console.log(`🤖 [FALLBACK] Auto-replying to ${commentId} using template default...`);
+                                    await facebook.replyToComment(commentId, template.page_access_token, replyText);
+                                    console.log('✅ Fallback auto-reply successful!');
+                                } else {
+                                    console.log('⏹️ Fallback template found, but no reply text.');
+                                }
+                            } else {
+                                console.log('❌ No active template with auto-reply found for this page.');
+                                // Debug: show some templates to help
+                                const debugTemps = await db.query('SELECT template_name, auto_reply_enabled FROM templates WHERE page_id = $1 LIMIT 3', [pageId]);
+                                console.log('💡 Templates for this page:', debugTemps.rows);
+                            }
                         }
                     } catch (err) {
                         console.error('❌ Auto-reply error:', err.message);

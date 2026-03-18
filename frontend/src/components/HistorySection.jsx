@@ -1,4 +1,4 @@
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, Eye } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, Eye, ExternalLink } from 'lucide-react';
 import { V } from '../theme';
 
 const HistorySection = ({
@@ -110,6 +110,27 @@ const HistorySection = ({
                                                         >
                                                             <Eye size={10} /> ดูตัวอย่าง
                                                         </button>
+                                                        {item.fb_post_id && item.status === 'success' && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); window.open(`https://facebook.com/${item.fb_post_id}`, '_blank'); }}
+                                                                style={{
+                                                                    background: 'rgba(24,119,242,0.1)',
+                                                                    border: '1px solid rgba(24,119,242,0.2)',
+                                                                    color: '#1877f2',
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '6px',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    fontSize: '10px',
+                                                                    fontWeight: '700',
+                                                                    marginLeft: '4px'
+                                                                }}
+                                                            >
+                                                                <ExternalLink size={10} /> ดูบน Facebook
+                                                            </button>
+                                                        )}
                                                         {item.status === 'pending' && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}

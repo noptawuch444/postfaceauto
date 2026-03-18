@@ -90,6 +90,25 @@ const HistorySection = ({
                                                             <Clock size={10} />
                                                             {(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                                                         </span>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); onPreview(item); }}
+                                                            style={{
+                                                                background: 'rgba(201,168,76,0.1)',
+                                                                border: `1px solid ${V.pri}40`,
+                                                                color: V.pri,
+                                                                padding: '4px 8px',
+                                                                borderRadius: '6px',
+                                                                cursor: 'pointer',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px',
+                                                                fontSize: '10px',
+                                                                fontWeight: '700',
+                                                                marginLeft: '4px'
+                                                            }}
+                                                        >
+                                                            <Eye size={10} /> ดูตัวอย่าง
+                                                        </button>
                                                         {item.status === 'pending' && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}

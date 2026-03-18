@@ -355,18 +355,26 @@ function PublicPost() {
                         isAutoReplyEnabledInTemplate={template?.auto_reply_enabled}
                     />
                     <HistorySection
-                        history={history} groupedHistory={groupedHistory}
-                        collapsedDates={collapsedDates} setCollapsedDates={setCollapsedDates}
-                        expandedItems={expandedItems} toggleExpand={toggleExpand}
+                        history={history}
+                        groupedHistory={groupedHistory}
+                        collapsedDates={collapsedDates}
+                        setCollapsedDates={setCollapsedDates}
+                        expandedItems={expandedItems}
+                        toggleExpand={toggleExpand}
                         onDelete={handleDeleteHistory}
+                        onPreview={handlePreviewHistory}
                     />
                 </div>
             </div>
 
             <FacebookPreviewModal
-                showPreview={showPreview} setShowPreview={setShowPreview}
-                template={template} message={message} imagePreviews={imagePreviews}
-                postNow={postNow} scheduleTime={scheduleTime}
+                showPreview={showPreview}
+                setShowPreview={closePreview}
+                template={template}
+                message={historyPreviewData ? historyPreviewData.message : message}
+                imagePreviews={historyPreviewData ? historyPreviewData.imagePreviews : imagePreviews}
+                postNow={historyPreviewData ? historyPreviewData.postNow : postNow}
+                scheduleTime={historyPreviewData ? historyPreviewData.scheduleTime : (postNow ? null : scheduleTime)}
             />
 
             <CustomConfirmModal

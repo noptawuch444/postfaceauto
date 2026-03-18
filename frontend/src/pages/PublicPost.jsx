@@ -386,7 +386,6 @@ function PublicPost() {
                         expandedItems={expandedItems}
                         toggleExpand={toggleExpand}
                         onDelete={handleDeleteHistory}
-                        onPreview={handlePreviewHistory}
                     />
                 </div>
             </div>

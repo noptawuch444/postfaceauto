@@ -1,4 +1,4 @@
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, Eye, ExternalLink } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink } from 'lucide-react';
 import { V } from '../theme';
 
 const HistorySection = ({
@@ -91,25 +91,6 @@ const HistorySection = ({
                                                             <Clock size={10} />
                                                             {(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                                                         </span>
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); onPreview(item); }}
-                                                            style={{
-                                                                background: 'rgba(201,168,76,0.1)',
-                                                                border: `1px solid ${V.pri}40`,
-                                                                color: V.pri,
-                                                                padding: '4px 8px',
-                                                                borderRadius: '6px',
-                                                                cursor: 'pointer',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                                fontSize: '10px',
-                                                                fontWeight: '700',
-                                                                marginLeft: '4px'
-                                                            }}
-                                                        >
-                                                            <Eye size={10} /> ดูตัวอย่าง
-                                                        </button>
                                                         {item.fb_post_id && item.status === 'success' && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); window.open(`https://facebook.com/${item.fb_post_id}`, '_blank'); }}

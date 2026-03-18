@@ -8,7 +8,8 @@ const HistorySection = ({
     setCollapsedDates,
     expandedItems,
     toggleExpand,
-    onDelete
+    onDelete,
+    onPreview
 }) => {
     return (
         <div className="gs-history-section" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, maxWidth: '100%' }}>

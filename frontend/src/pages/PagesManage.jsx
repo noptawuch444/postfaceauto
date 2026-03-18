@@ -47,6 +47,22 @@ function PagesManage() {
         };
     };
 
+    const handleTestWebhook = async (pageId) => {
+        try {
+            const res = await fetch(`/api/webhook/test?page_id=${pageId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`🧪 ส่งคำสั่งทดสอบสำเร็จ!\n\n${data.message}\n\n${data.details}`);
+            } else {
+                alert('❌ ทดสอบไม่สำเร็จ: ' + data.message);
+            }
+        } catch (err) {
+            alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+        }
+    };
+
     const handleDelete = async (id) => {
         if (!window.confirm('ยืนยันการลบการเชื่อมต่อเพจนี้? เทมเพลตที่เกี่ยวข้องจะถูกลบไปด้วย')) return;
         try {
@@ -224,6 +240,22 @@ function PagesManage() {
                                             <div style={{ flex: 1, fontSize: '12px', color: V.txtM, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <Calendar size={14} /> {new Date(page.created_at).toLocaleDateString('th-TH')}
                                             </div>
+                                            <button
+                                                onClick={() => handleTestWebhook(page.page_id)}
+                                                className="adm-btn-sync"
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    fontSize: '11px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    background: 'rgba(91, 155, 213, 0.1)',
+                                                    border: '1px solid rgba(91, 155, 213, 0.2)',
+                                                    color: V.info
+                                                }}
+                                            >
+                                                <Shield size={14} /> ทดสอบระบบ
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(page.id)}
                                                 className="adm-btn-del"

@@ -245,6 +245,7 @@ router.get('/debug-users', async (req, res) => {
 router.post('/:slug/history/delete', async (req, res) => {
     try {
         const { password, postId } = req.body;
+        console.log(`🗑️ [DELETE] Request for Post: ${postId} (Template Slug: ${req.params.slug})`);
 
         // Lookup template
         const tResult = await db.query(
@@ -252,11 +253,15 @@ router.post('/:slug/history/delete', async (req, res) => {
             [req.params.slug]
         );
 
-        if (tResult.rows.length === 0) return res.status(404).json({ error: 'ไม่พบเทมเพลตนี้' });
+        if (tResult.rows.length === 0) {
+            console.log('❌ [DELETE] Template not found');
+            return res.status(404).json({ error: 'ไม่พบเทมเพลตนี้' });
+        }
         const template = tResult.rows[0];
 
         // Check password
         if (template.password !== password) {
+            console.log('❌ [DELETE] Invalid password');
             return res.status(401).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
         }
 
@@ -267,8 +272,11 @@ router.post('/:slug/history/delete', async (req, res) => {
         );
 
         if (dResult.rows.length === 0) {
+            console.log(`❌ [DELETE] Post ${postId} not deleted (Not pending or wrong template)`);
             return res.status(400).json({ error: 'ไม่สามารถลบรายการนี้ได้ (อาจถูกส่งไปแล้ว หรือไม่พบข้อมูล)' });
         }
+
+        console.log(`✅ [DELETE] Post ${postId} successfully deleted`);
 
         res.json({ success: true, message: 'ลบรายการเรียบร้อยแล้ว' });
     } catch (error) {

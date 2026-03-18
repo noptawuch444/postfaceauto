@@ -208,15 +208,22 @@ function PublicPost() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password, postId: pendingDeleteId })
             });
+
+            if (res.status === 404) {
+                setError('เกิดข้อผิดพลาด: ไม่พบที่อยู่สำหรับลบรายการ (โปรดตรวจสอบว่า Deploy เสร็จสมบูรณ์แล้ว)');
+                return;
+            }
+
             const data = await res.json();
             if (data.success) {
                 setSuccess('ลบรายการเรียบร้อยแล้ว!');
                 fetchHistory();
             } else {
-                setError(data.error);
+                setError(data.error || `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (Status: ${res.status})`);
             }
         } catch (err) {
-            setError('เกิดข้อผิดพลาดในการลบรายการ');
+            console.error('Delete error:', err);
+            setError('เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อลบรายการ: ' + err.message);
         } finally {
             setPendingDeleteId(null);
         }

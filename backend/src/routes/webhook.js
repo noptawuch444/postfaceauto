@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
 
     // Log the event type for basic visual confirmation in Render logs
     if (body.object) {
-        console.log(`📡 Incoming Webhook Event: ${body.object}`);
+        console.log(`📡 [WEBHOOK] Incoming Object Type: ${body.object}`);
     }
 
     // Check if this is an event from a page subscription
@@ -36,32 +36,38 @@ router.post('/', async (req, res) => {
         body.entry.forEach(async (entry) => {
             const pageId = entry.id;
 
-            entry.changes.forEach(async (change) => {
+            if (!entry.changes) {
+                console.log(`⚠️ [WEBHOOK] Entry received for ${pageId} but no changes found.`);
+                return;
+            }
+
+            for (const change of entry.changes) {
+                console.log(`🔍 [WEBHOOK] Change detected on field: "${change.field}" (Value Item: "${change.value?.item}", Verb: "${change.value?.verb}")`);
+
                 // We only care about new comments on the feed
                 if (change.field === 'feed' && change.value.item === 'comment' && change.value.verb === 'add') {
                     const commentValue = change.value;
                     const commentId = commentValue.comment_id;
-                    const postId = commentValue.post_id; // Usually "pageId_postId" or just "postId"
-                    const message = commentValue.message;
+                    const postId = commentValue.post_id;
+                    const commentText = commentValue.message;
                     const senderId = commentValue.from.id;
+                    const senderName = commentValue.from.name;
 
-                    console.log(`📩 [${pageId}] New comment on ${postId}: "${message.substring(0, 20)}..." from ${senderId}`);
+                    console.log(`📩 [WEBHOOK] [Page: ${pageId}] New comment "${commentText.substring(0, 30)}..." on Post: ${postId} from: ${senderName} (${senderId})`);
 
                     // 1. Avoid self-reply
                     if (senderId === pageId) {
-                        console.log('⏭️ Skipping self-reply (Comment is from the page itself)');
-                        return;
+                        console.log('⏭️ [WEBHOOK] Skipping self-reply (Comment is from the page itself)');
+                        continue;
                     }
 
                     try {
                         // 2. Resolve Post ID Variations
-                        // Facebook sends postId in formats like "123456789_987654321" (pageId_postId)
-                        // But we might store it as just "987654321" or the full string.
                         const postIdParts = postId ? postId.split('_') : [];
                         const rawPostId = postIdParts.length > 1 ? postIdParts[postIdParts.length - 1] : postId;
                         const fullPostId = postId;
 
-                        console.log(`🔍 Searching for Post Match: [Full: ${fullPostId}] [Raw: ${rawPostId}]`);
+                        console.log(`🔍 [WEBHOOK] Searching DB for post mapping: [Full: ${fullPostId}] [Raw: ${rawPostId}]`);
 
                         const result = await db.query(
                             `SELECT t.auto_reply_enabled, t.auto_reply_text as template_reply, ps.auto_reply_text as post_reply, p.page_access_token
@@ -75,27 +81,21 @@ router.post('/', async (req, res) => {
 
                         if (result.rows.length > 0) {
                             const post = result.rows[0];
+                            console.log(`✅ [WEBHOOK] specific post match found. Auto-Reply Enabled: ${post.auto_reply_enabled}`);
 
-                            // 3. Check if auto-reply is enabled for this template
                             if (post.auto_reply_enabled) {
-                                // Prefer post-specific text, fall back to template text
                                 const replyText = post.post_reply || post.template_reply;
-
                                 if (replyText) {
-                                    console.log(`🤖 Auto-replying to ${commentId} with: "${replyText.substring(0, 20)}..."`);
+                                    console.log(`🤖 [WEBHOOK] Replying to ${commentId} with: "${replyText.substring(0, 20)}..."`);
                                     await facebook.replyToComment(commentId, post.page_access_token, replyText);
-                                    console.log('✅ Auto-reply successful!');
+                                    console.log('✨ [WEBHOOK] Auto-reply successful!');
                                 } else {
-                                    console.log('⏹️ Match found, but no reply text is configured.');
+                                    console.log('⏹️ [WEBHOOK] Match found, but reply text is empty.');
                                 }
-                            } else {
-                                console.log('⏹️ Match found, but Auto-Reply is DISABLED for this template.');
                             }
                         } else {
-                            console.log(`❓ No specific post match for ID: ${postId}. Trying fallback (Page-wide active template)...`);
+                            console.log(`❓ [WEBHOOK] No specific post ID match. Trying fallback (Page-wide active template)...`);
 
-                            // FALLBACK: If no specific post ID matches (e.g. manually posted on FB), 
-                            // find the most recently created template for this page that has auto-reply enabled.
                             const fallbackResult = await db.query(
                                 `SELECT t.auto_reply_enabled, t.auto_reply_text as template_reply, p.page_access_token
                                  FROM templates t
@@ -110,26 +110,20 @@ router.post('/', async (req, res) => {
                                 const replyText = template.template_reply;
 
                                 if (replyText) {
-                                    console.log(`🤖 [FALLBACK] Auto-replying to ${commentId} using template default...`);
+                                    console.log(`🤖 [WEBHOOK] [FALLBACK] Replying to ${commentId} using template default...`);
                                     await facebook.replyToComment(commentId, template.page_access_token, replyText);
-                                    console.log('✅ Fallback auto-reply successful!');
-                                } else {
-                                    console.log('⏹️ Fallback template found, but no reply text.');
+                                    console.log('✨ [WEBHOOK] Fallback auto-reply successful!');
                                 }
                             } else {
-                                console.log('❌ No active template with auto-reply found for this page.');
-                                // Debug: show some templates to help
-                                const debugTemps = await db.query('SELECT template_name, auto_reply_enabled FROM templates WHERE page_id = $1 LIMIT 3', [pageId]);
-                                console.log('💡 Templates for this page:', debugTemps.rows);
+                                console.log(`❌ [WEBHOOK] No match and no fallback template found for Page: ${pageId}`);
                             }
                         }
                     } catch (err) {
-                        console.error('❌ Auto-reply error:', err.message);
+                        console.error('❌ [WEBHOOK] Auto-reply processing error:', err.message);
                     }
                 }
-            });
+            }
         });
-
         res.status(200).send('EVENT_RECEIVED');
     } else {
         res.sendStatus(404);

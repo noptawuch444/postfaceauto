@@ -87,7 +87,29 @@ function PagesManage() {
                         <p>รายการเพจทั้งหมดที่เชื่อมต่อเข้ากับระบบ Auto Post พร้อมตรวจสอบสถานะ Token</p>
                     </div>
                 </div>
-                <div className="adm-header-actions">
+                <div className="adm-header-actions" style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                        className="adm-btn-refresh"
+                        onClick={async () => {
+                            if (!window.confirm('ยืนยันการขอสิทธิ์ Webhook กับทุกเพจ? ระบบจะพยายามส่งสัญญาณไปยัง Facebook อีกครั้งครับ')) return;
+                            try {
+                                const res = await fetch('/api/facebook/sync-webhooks', {
+                                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    alert('ซิงค์ข้อมูล Webhook สำเร็จแล้วครับ! โปรดลองคอมเมนต์ทดสอบในโพสต์จริง');
+                                } else {
+                                    alert('เกิดข้อผิดพลาด: ' + data.error);
+                                }
+                            } catch (err) {
+                                alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+                            }
+                        }}
+                        style={{ background: 'rgba(201,168,76,0.1)', border: `1px solid ${V.pri}40`, color: V.pri, padding: '0 16px', height: '42px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <RefreshCw size={16} /> ซิงค์ระบบ Webhook
+                    </button>
                     <a href="/connect-facebook" style={{ textDecoration: 'none' }}>
                         <button className="adm-btn-primary">
                             <Plus size={18} /> เชื่อมต่อเพจใหม่

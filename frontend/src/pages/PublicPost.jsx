@@ -6,6 +6,7 @@ import GoldenSnow from '../components/GoldenSnow';
 import PostFormSection from '../components/PostFormSection';
 import HistorySection from '../components/HistorySection';
 import FacebookPreviewModal from '../components/FacebookPreviewModal';
+import CustomConfirmModal from '../components/CustomConfirmModal';
 import { V } from '../theme';
 
 function PublicPost() {
@@ -31,6 +32,8 @@ function PublicPost() {
     const [expandedItems, setExpandedItems] = useState({});
     const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
     const [autoReplyText, setAutoReplyText] = useState('');
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
     const fetchHistory = useCallback(async () => {
         if (!isVerified) return;
@@ -191,6 +194,34 @@ function PublicPost() {
         setAutoReplyEnabled(false); setAutoReplyText('');
     };
 
+    const handleDeleteHistory = (postId) => {
+        setPendingDeleteId(postId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!pendingDeleteId) return;
+        setIsDeleteModalOpen(false);
+        try {
+            const res = await fetch(`/api/public/${slug}/history/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password, postId: pendingDeleteId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSuccess('ลบรายการเรียบร้อยแล้ว!');
+                fetchHistory();
+            } else {
+                setError(data.error);
+            }
+        } catch (err) {
+            setError('เกิดข้อผิดพลาดในการลบรายการ');
+        } finally {
+            setPendingDeleteId(null);
+        }
+    };
+
     if (!isVerified) {
         return (
             <div className="gs-verify-container" style={{ background: V.bgMain, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Prompt", sans-serif', color: V.txt, position: 'relative', overflow: 'hidden' }}>
@@ -320,6 +351,7 @@ function PublicPost() {
                         history={history} groupedHistory={groupedHistory}
                         collapsedDates={collapsedDates} setCollapsedDates={setCollapsedDates}
                         expandedItems={expandedItems} toggleExpand={toggleExpand}
+                        onDelete={handleDeleteHistory}
                     />
                 </div>
             </div>
@@ -328,6 +360,14 @@ function PublicPost() {
                 showPreview={showPreview} setShowPreview={setShowPreview}
                 template={template} message={message} imagePreviews={imagePreviews}
                 postNow={postNow} scheduleTime={scheduleTime}
+            />
+
+            <CustomConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="ยืนยันการลบรายการ"
+                message="คุณต้องการยกเลิกและลบรายการที่เลือกใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้"
             />
 
             <style>{`

@@ -1,4 +1,4 @@
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2 } from 'lucide-react';
 import { V } from '../theme';
 
 const HistorySection = ({
@@ -7,7 +7,8 @@ const HistorySection = ({
     collapsedDates,
     setCollapsedDates,
     expandedItems,
-    toggleExpand
+    toggleExpand,
+    onDelete
 }) => {
     return (
         <div className="gs-history-section" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, maxWidth: '100%' }}>
@@ -89,6 +90,27 @@ const HistorySection = ({
                                                             <Clock size={10} />
                                                             {(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                                                         </span>
+                                                        {item.status === 'pending' && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+                                                                style={{
+                                                                    background: 'rgba(224,85,85,0.1)',
+                                                                    border: '1px solid rgba(224,85,85,0.2)',
+                                                                    color: V.err,
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '6px',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    fontSize: '10px',
+                                                                    fontWeight: '700',
+                                                                    marginLeft: '4px'
+                                                                }}
+                                                            >
+                                                                <Trash2 size={10} /> ยกเลิก
+                                                            </button>
+                                                        )}
                                                     </div>
                                                     {item.image_url && (
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '11px', fontWeight: '600' }}>

@@ -241,4 +241,39 @@ router.get('/debug-users', async (req, res) => {
     }
 });
 
+// POST /api/public/:slug/history/delete - Delete a pending post via public link
+router.post('/:slug/history/delete', async (req, res) => {
+    try {
+        const { password, postId } = req.body;
+
+        // Lookup template
+        const tResult = await db.query(
+            'SELECT id, password FROM templates WHERE slug = $1',
+            [req.params.slug]
+        );
+
+        if (tResult.rows.length === 0) return res.status(404).json({ error: 'ไม่พบเทมเพลตนี้' });
+        const template = tResult.rows[0];
+
+        // Check password
+        if (template.password !== password) {
+            return res.status(401).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
+        }
+
+        // Delete only if status is 'pending' and belongs to this template
+        const dResult = await db.query(
+            "DELETE FROM posts WHERE id = $1 AND template_id = $2 AND status = 'pending' RETURNING id",
+            [postId, template.id]
+        );
+
+        if (dResult.rows.length === 0) {
+            return res.status(400).json({ error: 'ไม่สามารถลบรายการนี้ได้ (อาจถูกส่งไปแล้ว หรือไม่พบข้อมูล)' });
+        }
+
+        res.json({ success: true, message: 'ลบรายการเรียบร้อยแล้ว' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

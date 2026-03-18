@@ -147,11 +147,53 @@ const PostFormSection = ({
                     {/* Schedule Time */}
                     {!postNow && (
                         <div style={{ animation: 'fadeSlideIn 0.3s ease-out' }}>
-                            <div style={{ position: 'relative', width: '100%', height: '54px' }}>
-                                <input type="datetime-local" ref={dateTimeInputRef} lang="th" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} required={!postNow} disabled={postNow} style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none', colorScheme: 'dark' }} />
-                                <div onClick={() => dateTimeInputRef.current?.showPicker()} style={{ width: '100%', height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '14px', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '10px', boxSizing: 'border-box', cursor: 'pointer' }}>
+                            <div
+                                onClick={() => !postNow && dateTimeInputRef.current?.showPicker()}
+                                style={{ position: 'relative', width: '100%', height: '54px', cursor: postNow ? 'default' : 'pointer' }}
+                            >
+                                {/* The actual input is invisible and non-interactive to clicks (pointer-events: none) */}
+                                <input
+                                    type="datetime-local"
+                                    ref={dateTimeInputRef}
+                                    lang="th"
+                                    value={scheduleTime}
+                                    onChange={e => setScheduleTime(e.target.value)}
+                                    required={!postNow}
+                                    disabled={postNow}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        opacity: 0,
+                                        zIndex: 1,
+                                        pointerEvents: 'none'
+                                    }}
+                                />
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    background: '#0a0a0a',
+                                    border: `1.5px solid ${V.pri}`,
+                                    borderRadius: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 16px',
+                                    gap: '10px',
+                                    boxSizing: 'border-box',
+                                    zIndex: 2
+                                }}>
                                     <Calendar size={18} style={{ color: V.pri }} />
-                                    <div style={{ fontSize: '16px', fontWeight: '800', color: V.pri }}>{scheduleTime ? new Date(scheduleTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : 'คลิกเพื่อเลือกเวลา...'}</div>
+                                    <div style={{ fontSize: '16px', fontWeight: '800', color: V.pri }}>
+                                        {scheduleTime ?
+                                            new Date(scheduleTime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) :
+                                            'คลิกเพื่อเลือกเวลา...'
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>

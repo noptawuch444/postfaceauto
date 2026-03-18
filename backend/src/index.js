@@ -31,11 +31,16 @@ app.use('/api/webhook', require('./routes/webhook'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-// Start scheduler
+// Start scheduler & Run Migration
+const { runMigrations } = require('./migration');
 const { startScheduler } = require('./services/scheduler');
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`\n🚀 AutoPost Backend running on http://localhost:${PORT}`);
     console.log(`📡 API: http://localhost:${PORT}/api`);
+
+    // Auto-migrate database on start
+    await runMigrations();
+
     startScheduler();
 });

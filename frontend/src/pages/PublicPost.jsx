@@ -144,7 +144,11 @@ function PublicPost() {
         fd.append('password', password); fd.append('message', message);
         images.forEach(img => fd.append('images', img));
         fd.append('post_now', postNow);
-        if (!postNow) fd.append('schedule_time', scheduleTime);
+        if (!postNow && scheduleTime) {
+            // Convert local time to UTC ISO string for consistent server handling
+            const utcTime = new Date(scheduleTime).toISOString();
+            fd.append('schedule_time', utcTime);
+        }
         if (autoReplyEnabled && autoReplyText) fd.append('auto_reply_text', autoReplyText);
         try {
             const res = await fetch(`/api/public/${slug}/post`, { method: 'POST', body: fd });

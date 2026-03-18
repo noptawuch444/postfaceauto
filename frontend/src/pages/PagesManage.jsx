@@ -49,8 +49,10 @@ function PagesManage() {
 
     const handleTestWebhook = async (pageId) => {
         try {
-            const res = await fetch(`/api/webhook/test?page_id=${pageId}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            const res = await fetch('/api/webhook/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page_id: pageId })
             });
             const data = await res.json();
             if (data.success) {
@@ -59,7 +61,8 @@ function PagesManage() {
                 alert('❌ ทดสอบไม่สำเร็จ: ' + data.message);
             }
         } catch (err) {
-            alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+            console.error('Test Webhook Error:', err);
+            alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (โปรดตรวจสอบ Console ใน Browser เพื่อดูรายละเอียด)');
         }
     };
 

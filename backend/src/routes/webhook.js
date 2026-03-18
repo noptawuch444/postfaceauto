@@ -102,10 +102,10 @@ router.post('/', async (req, res) => {
     }
 });
 
-// GET /api/webhook/test - Simulate a webhook event for diagnostics
-router.get('/test', async (req, res) => {
+// POST /api/webhook/test - Simulate a webhook event for diagnostics
+router.post('/test', async (req, res) => {
     try {
-        const { page_id } = req.query;
+        const { page_id } = req.body;
         if (!page_id) return res.status(400).json({ error: 'Missing page_id' });
 
         // Find the most recent post for this page

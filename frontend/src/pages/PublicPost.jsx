@@ -34,6 +34,30 @@ function PublicPost() {
     const [autoReplyText, setAutoReplyText] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState(null);
+    const [historyPreviewData, setHistoryPreviewData] = useState(null);
+
+    const handlePreviewHistory = (item) => {
+        let parsedImages = [];
+        try {
+            const urls = item.image_url ? JSON.parse(item.image_url) : [];
+            parsedImages = Array.isArray(urls) ? urls.map(u => ({ src: u })) : (urls ? [{ src: urls }] : []);
+        } catch (e) {
+            if (item.image_url) parsedImages = [{ src: item.image_url }];
+        }
+
+        setHistoryPreviewData({
+            message: item.message,
+            imagePreviews: parsedImages,
+            scheduleTime: item.schedule_time || item.created_at,
+            postNow: item.status === 'success' || !item.schedule_time
+        });
+        setShowPreview(true);
+    };
+
+    const closePreview = () => {
+        setShowPreview(false);
+        setHistoryPreviewData(null);
+    };
 
     const fetchHistory = useCallback(async () => {
         if (!isVerified) return;

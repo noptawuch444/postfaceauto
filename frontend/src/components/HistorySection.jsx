@@ -1,4 +1,4 @@
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2 } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, Eye } from 'lucide-react';
 import { V } from '../theme';
 
 const HistorySection = ({

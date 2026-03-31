@@ -18,27 +18,37 @@ function startScheduler() {
                   AND p.schedule_time <= NOW()
             `);
 
+            if (result.rows.length === 0) return;
+
+            // Fetch blacklist ONCE for the entire batch
+            const settingsRes = await db.query("SELECT value FROM settings WHERE key = 'blacklist'");
+            const blacklist = settingsRes.rows.length > 0
+                ? settingsRes.rows[0].value.split(',').map(k => k.trim().toLowerCase()).filter(k => k)
+                : [];
+
             for (const post of result.rows) {
                 try {
-                    // Blacklist Check in Scheduler
-                    const settingsRes = await db.query("SELECT value FROM settings WHERE key = 'blacklist'");
-                    if (settingsRes.rows.length > 0) {
-                        const blacklist = settingsRes.rows[0].value.split(',').map(k => k.trim()).filter(k => k);
+                    // Optimized Blacklist Check
+                    if (blacklist.length > 0) {
                         const lowerMessage = (post.message || '').toLowerCase();
-                        const hitWord = blacklist.find(word => lowerMessage.includes(word.toLowerCase()));
+                        const hitWord = blacklist.find(word => lowerMessage.includes(word));
                         if (hitWord) {
                             throw new Error(`ข้อความมีคำที่ไม่อนุญาต: "${hitWord}"`);
                         }
                     }
 
                     let fbResult;
-                    if (post.image_url) {
+                    const imageUrl = post.image_url;
+
+                    if (imageUrl) {
                         const path = require('path');
                         let urls = [];
-                        try {
-                            urls = JSON.parse(post.image_url);
-                        } catch (e) {
-                            urls = [post.image_url];
+
+                        // Parse JSON only if it looks like an array, otherwise treat as single URL
+                        if (imageUrl.startsWith('[')) {
+                            try { urls = JSON.parse(imageUrl); } catch (e) { urls = [imageUrl]; }
+                        } else {
+                            urls = [imageUrl];
                         }
 
                         if (Array.isArray(urls) && urls.length > 1) {
@@ -51,7 +61,7 @@ function startScheduler() {
                             }
                             fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
                         } else {
-                            const url = Array.isArray(urls) ? urls[0] : post.image_url;
+                            const url = Array.isArray(urls) ? urls[0] : imageUrl;
                             const filename = url.split('/').pop();
                             const filePath = path.join(__dirname, '..', '..', 'uploads', filename);
                             fbResult = await facebook.postPhotoToPage(post.page_id, post.page_access_token, post.message || '', filePath);

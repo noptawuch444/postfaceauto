@@ -274,4 +274,4 @@ const PostFormSection = ({
     );
 };
 
-export default PostFormSection;
+export default React.memo(PostFormSection);

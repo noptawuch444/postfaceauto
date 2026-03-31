@@ -182,7 +182,7 @@ function Dashboard() {
                                             flexShrink: 0
                                         }}>
                                             {post.image_url ?
-                                                <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> :
+                                                <img src={post.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" /> :
                                                 <FileText size={20} color={V.txtM} />
                                             }
                                         </div>

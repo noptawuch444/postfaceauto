@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const dbUrl = process.env.DATABASE_URL || '';
 const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
@@ -12,7 +13,10 @@ const connectionString = isProd && !isLocal && dbUrl
 
 const pool = new Pool({
     connectionString,
-    ssl: isProd && !isLocal ? { rejectUnauthorized: false } : false
+    ssl: isProd && !isLocal ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 module.exports = {

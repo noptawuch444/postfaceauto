@@ -26,11 +26,6 @@ router.get('/', (req, res) => {
 async function processEvents(body) {
     if (body.object !== 'page') return;
 
-    // DEEP LOGGING for debugging real events
-    if (body.entry && body.entry[0] && body.entry[0].changes && !body.entry[0].changes[0].value.id?.startsWith('TEST_ID_')) {
-        console.log('📦 [RAW WEBHOOK BODY]:', JSON.stringify(body, null, 2));
-    }
-
     for (const entry of body.entry) {
         const pageId = entry.id;
         if (!entry.changes) continue;
@@ -38,12 +33,6 @@ async function processEvents(body) {
         for (const change of entry.changes) {
             if (change.field === 'feed' && change.value.item === 'comment' && change.value.verb === 'add') {
                 const val = change.value;
-
-                // Detailed logging for comment values
-                if (!val.id?.startsWith('TEST_ID_')) {
-                    console.log('🔍 [WEBHOOK VALUE]:', JSON.stringify(val, null, 2));
-                }
-
                 const commentId = val.id || val.comment_id;
                 const postId = val.post_id || val.parent_id;
                 const commentText = val.message || '';
@@ -60,10 +49,6 @@ async function processEvents(body) {
                 try {
                     const postIdParts = postId ? postId.split('_') : [];
                     const rawPostId = postIdParts.length > 1 ? postIdParts[postIdParts.length - 1] : postId;
-
-                    if (!val.id?.startsWith('TEST_ID_')) {
-                        console.log(`🔎 [WEBHOOK MATCHING] Page: ${pageId}, Post: ${postId}, Raw: ${rawPostId}`);
-                    }
 
                     const result = await db.query(
                         `SELECT t.auto_reply_enabled, t.auto_reply_text as template_reply, ps.auto_reply_text as post_reply, p.page_access_token

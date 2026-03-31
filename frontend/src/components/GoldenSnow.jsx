@@ -84,4 +84,4 @@ const GoldenSnow = ({ zIndex = 0 }) => {
     );
 };
 
-export default GoldenSnow;
+export default React.memo(GoldenSnow);

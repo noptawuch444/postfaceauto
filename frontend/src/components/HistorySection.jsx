@@ -162,7 +162,7 @@ const HistorySection = ({
                                                                 const urls = JSON.parse(item.image_url);
                                                                 return Array.isArray(urls) ? urls.map((url, i) => (
                                                                     <div key={i} style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
-                                                                        <img src={url} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                                                                        <img src={url} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} loading="lazy" />
                                                                     </div>
                                                                 )) : (
                                                                     <div style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
@@ -203,4 +203,4 @@ const HistorySection = ({
     );
 };
 
-export default HistorySection;
+export default React.memo(HistorySection);

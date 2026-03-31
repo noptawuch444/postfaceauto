@@ -26,6 +26,15 @@ async function runMigrations() {
         }
 
         console.log('✅ Database migration successful: All timestamp columns converted to TIMESTAMPTZ.');
+
+        // [New] Add performance indexes automatically
+        console.log('🚀 Checking performance indexes...');
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_posts_status_schedule ON posts(status, schedule_time)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_posts_fb_id ON posts(fb_post_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_templates_slug ON templates(slug)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_templates_page_id ON templates(page_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_pages_page_id ON pages(page_id)`);
+        console.log('✅ Performance indexes verified.');
     } catch (err) {
         // We log but don't crash the server, in case some tables don't exist yet
         console.error('⚠️ Database migration warning:', err.message);

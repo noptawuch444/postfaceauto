@@ -12,7 +12,7 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://postfaceauto-backend.onrender.com/api/*
+        destination: https://autopost-backend.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html

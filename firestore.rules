@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own data
+    // Admin functions will bypass these rules using Admin SDK
+    match /{document=**} {
+      allow read, write: if true; // Temporary: In production, we'll restrict this by Auth
+    }
+  }
+}

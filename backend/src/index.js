@@ -36,6 +36,21 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 // Start scheduler & Run Migration
 const { runMigrations } = require('./migration');
 const { startScheduler } = require('./services/scheduler');
+const axios = require('axios');
+
+const startKeepAlive = () => {
+    const interval = 10 * 60 * 1000; // 10 minutes
+    setInterval(async () => {
+        try {
+            // Self-ping to keep Render instance active
+            const url = `http://localhost:${PORT}/api/health`;
+            await axios.get(url);
+            console.log(`⏰ [KEEP-ALIVE] Heartbeat sent to ${url}`);
+        } catch (err) {
+            console.error('❌ [KEEP-ALIVE] Heartbeat failed:', err.message);
+        }
+    }, interval);
+};
 
 app.listen(PORT, async () => {
     console.log(`\n🚀 AutoPost Backend running on http://localhost:${PORT}`);
@@ -45,4 +60,5 @@ app.listen(PORT, async () => {
     await runMigrations();
 
     startScheduler();
+    startKeepAlive();
 });

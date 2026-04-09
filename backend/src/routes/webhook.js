@@ -14,12 +14,14 @@ router.get('/', (req, res) => {
     if (mode && token) {
         if (mode === 'subscribe' && token === VERIFY_TOKEN) {
             console.log('✅ Webhook Verified!');
-            res.status(200).send(challenge);
+            return res.status(200).send(challenge);
         } else {
             console.log('❌ Webhook Verification Failed (Token Mismatch)');
-            res.sendStatus(403);
+            return res.sendStatus(403);
         }
     }
+    // Always respond — prevents timeout on missing params
+    res.status(200).send('Webhook endpoint is active.');
 });
 
 // Main Webhook Processing Logic

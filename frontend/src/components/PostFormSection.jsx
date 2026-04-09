@@ -1,3 +1,4 @@
+import React from 'react';
 import { Edit3, Image as ImageIcon, Film, Send, Clock, Calendar, AlertCircle, CheckCircle2, Save, Eye, Trash2, Loader2 } from 'lucide-react';
 import { V } from '../theme';
 

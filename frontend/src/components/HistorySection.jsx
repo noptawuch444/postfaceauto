@@ -1,3 +1,4 @@
+import React from 'react';
 import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink } from 'lucide-react';
 import { V } from '../theme';
 

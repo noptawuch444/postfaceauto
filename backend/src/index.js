@@ -65,4 +65,8 @@ app.listen(PORT, async () => {
 
     startScheduler();
     startKeepAlive();
+
+    // Start Comment Poller (polls Facebook Graph API for new comments every 30s)
+    const { startCommentPoller } = require('./services/commentPoller');
+    startCommentPoller();
 });

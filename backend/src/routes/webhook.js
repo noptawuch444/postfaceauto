@@ -44,6 +44,33 @@ router.get('/logs', async (req, res) => {
     }
 });
 
+// GET /api/webhook/poller-status - Debug: Show what the poller sees
+router.get('/poller-status', async (req, res) => {
+    try {
+        const templates = await db.query(`
+            SELECT t.id, t.name, t.auto_reply_enabled, t.auto_reply_text, p.page_id, p.page_name
+            FROM templates t
+            JOIN pages p ON t.page_id = p.id
+            WHERE t.auto_reply_enabled = true
+        `);
+        const posts = await db.query(`
+            SELECT ps.fb_post_id, ps.content, p.page_name, p.page_id
+            FROM posts ps
+            JOIN pages p ON ps.page_id = p.id
+            WHERE ps.fb_post_id IS NOT NULL
+            ORDER BY ps.created_at DESC LIMIT 10
+        `);
+        const repliedRes = await db.query('SELECT COUNT(*) as cnt FROM replied_comments').catch(() => ({ rows: [{ cnt: 0 }] }));
+        res.json({
+            auto_reply_templates: templates.rows,
+            recent_posts: posts.rows,
+            replied_count: repliedRes.rows[0].cnt
+        });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 // CATCH-ALL: Log EVERY request to /api/webhook (any method)
 router.use('/', (req, res, next) => {
     addLog('ANY_REQUEST', `${req.method} /api/webhook${req.url}`, {

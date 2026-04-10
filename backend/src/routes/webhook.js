@@ -61,7 +61,7 @@ router.get('/poller-status', async (req, res) => {
             WHERE ps.fb_post_id IS NOT NULL
             ORDER BY ps.created_at DESC LIMIT 10
         `);
-        const allTemplates = await db.query('SELECT id, name, auto_reply_enabled, auto_reply_text FROM templates');
+        const allTemplates = await db.query('SELECT id, template_name, auto_reply_enabled, auto_reply_text FROM templates');
         const allPages = await db.query('SELECT id, page_id, page_name FROM pages');
         let repliedCount = 0;
         try { repliedCount = (await db.query('SELECT COUNT(*) as cnt FROM replied_comments')).rows[0].cnt; } catch (e) { }

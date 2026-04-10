@@ -6,7 +6,7 @@ const router = express.Router();
 // GET /api/facebook/auth-url - Generate Facebook OAuth URL
 router.get('/auth-url', (req, res) => {
     const redirectUri = `${process.env.FRONTEND_URL}/facebook/callback`;
-    const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list,pages_read_user_content,pages_manage_metadata,pages_manage_engagement';
+    const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list,pages_read_user_content,pages_manage_metadata';
     const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
     res.json({ url });
 });

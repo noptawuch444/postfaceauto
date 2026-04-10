@@ -97,7 +97,7 @@ async function getAutoReplyText(pageId, postId) {
     const fallback = await db.query(`
         SELECT t.auto_reply_text, p.page_access_token
         FROM templates t
-        JOIN pages p ON t.page_id = p.id
+        JOIN pages p ON t.page_id = p.page_id
         WHERE p.page_id = $1 AND t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL
         ORDER BY t.updated_at DESC LIMIT 1
     `, [pageId]);
@@ -116,7 +116,7 @@ async function pollAllPages() {
         const pagesResult = await db.query(`
             SELECT DISTINCT p.page_id, p.page_name, p.page_access_token
             FROM pages p
-            JOIN templates t ON t.page_id = p.id
+            JOIN templates t ON t.page_id = p.page_id
             WHERE t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL
         `);
 

@@ -50,24 +50,30 @@ router.get('/poller-status', async (req, res) => {
         const templates = await db.query(`
             SELECT t.id, t.name, t.auto_reply_enabled, t.auto_reply_text, p.page_id, p.page_name
             FROM templates t
-            JOIN pages p ON t.page_id = p.id
+            JOIN pages p ON t.page_id = p.page_id
             WHERE t.auto_reply_enabled = true
         `);
         const posts = await db.query(`
-            SELECT ps.fb_post_id, ps.content, p.page_name, p.page_id
+            SELECT ps.id, ps.fb_post_id, LEFT(ps.content, 50) as content, p.page_name, p.page_id
             FROM posts ps
-            JOIN pages p ON ps.page_id = p.id
+            JOIN templates t ON ps.template_id = t.id
+            JOIN pages p ON t.page_id = p.page_id
             WHERE ps.fb_post_id IS NOT NULL
             ORDER BY ps.created_at DESC LIMIT 10
         `);
-        const repliedRes = await db.query('SELECT COUNT(*) as cnt FROM replied_comments').catch(() => ({ rows: [{ cnt: 0 }] }));
+        const allTemplates = await db.query('SELECT id, name, auto_reply_enabled, auto_reply_text FROM templates');
+        const allPages = await db.query('SELECT id, page_id, page_name FROM pages');
+        let repliedCount = 0;
+        try { repliedCount = (await db.query('SELECT COUNT(*) as cnt FROM replied_comments')).rows[0].cnt; } catch (e) { }
         res.json({
             auto_reply_templates: templates.rows,
+            all_templates: allTemplates.rows,
+            all_pages: allPages.rows,
             recent_posts: posts.rows,
-            replied_count: repliedRes.rows[0].cnt
+            replied_count: repliedCount
         });
     } catch (e) {
-        res.json({ error: e.message });
+        res.json({ error: e.message, stack: e.stack?.substring(0, 200) });
     }
 });
 

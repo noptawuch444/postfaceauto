@@ -67,6 +67,9 @@ async function replyToComment(commentId, pageAccessToken, message) {
         const data = await res.json();
         if (data.error) {
             console.error(`❌ [POLLER] Reply failed for ${commentId}:`, data.error.message);
+            await db.query('INSERT INTO webhook_logs (type, msg, data) VALUES ($1, $2, $3)',
+                ['POLLER_ERROR', `Reply failed for ${commentId}`, JSON.stringify(data.error)]
+            ).catch(() => { });
             return null;
         }
         return data;
@@ -152,21 +155,36 @@ async function pollAllPages() {
                 const comments = await getPostComments(post.fb_post_id, page.page_access_token);
 
                 for (const comment of comments) {
+                    const debugData = { commentId: comment.id, fromId: comment.from?.id, fromName: comment.from?.name };
+
                     // Skip if already replied
-                    if (await hasReplied(comment.id)) continue;
+                    if (await hasReplied(comment.id)) {
+                        // Silent skip for already replied
+                        continue;
+                    }
 
                     // Skip comments from the page itself
                     if (comment.from && comment.from.id === page.page_id) {
+                        console.log(`[POLLER] Skipping self-comment ${comment.id}`);
                         await markReplied(comment.id, post.fb_post_id, page.page_id, '[SELF]');
                         continue;
                     }
 
                     // Get auto-reply text
                     const replyText = await getAutoReplyText(page.page_id, post.fb_post_id);
-                    if (!replyText) continue;
+                    if (!replyText) {
+                        await db.query('INSERT INTO webhook_logs (type, msg, data) VALUES ($1, $2, $3)',
+                            ['POLLER_SKIP', `No reply template for ${page.page_name}`, JSON.stringify(debugData)]
+                        ).catch(() => { });
+                        continue;
+                    }
 
                     // Send reply!
-                    console.log(`🤖 [POLLER] Replying to comment ${comment.id} from ${comment.from?.name || 'Unknown'} on post ${post.fb_post_id}`);
+                    console.log(`🤖 [POLLER] Replying to comment ${comment.id} from ${comment.from?.name || 'Unknown'}`);
+                    await db.query('INSERT INTO webhook_logs (type, msg, data) VALUES ($1, $2, $3)',
+                        ['POLLER_ATTEMPT', `Replying to ${comment.from?.name || 'Unknown'}`, JSON.stringify({ ...debugData, replyText: replyText.substring(0, 50) })]
+                    ).catch(() => { });
+
                     const result = await replyToComment(comment.id, page.page_access_token, replyText);
 
                     if (result) {

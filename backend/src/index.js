@@ -14,6 +14,11 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Middleware
 app.use(compression());
+
+// ⚡ CRITICAL: Webhook route MUST be BEFORE cors() middleware!
+// Facebook sends server-to-server POST requests that get blocked by restrictive CORS.
+app.use('/api/webhook', express.json(), require('./routes/webhook'));
+
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -28,7 +33,6 @@ app.use('/api/posts', require('./routes/posts'));
 app.use('/api/public', require('./routes/public'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/settings', require('./routes/settings'));
-app.use('/api/webhook', require('./routes/webhook'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));

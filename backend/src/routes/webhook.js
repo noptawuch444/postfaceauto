@@ -3,19 +3,45 @@ const db = require('../db');
 const facebook = require('../services/facebook');
 const router = express.Router();
 
-// In-memory event log for remote debugging (keep last 50 entries)
-const webhookLogs = [];
-function addLog(type, msg, data = null) {
-    const entry = { time: new Date().toISOString(), type, msg };
-    if (data) entry.data = data;
-    webhookLogs.push(entry);
-    if (webhookLogs.length > 50) webhookLogs.shift();
+// Ensure webhook_logs table exists (auto-create on startup)
+(async () => {
+    try {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS webhook_logs (
+                id SERIAL PRIMARY KEY,
+                type VARCHAR(50),
+                msg TEXT,
+                data JSONB,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        `);
+        console.log('✅ webhook_logs table ready');
+    } catch (e) {
+        console.error('⚠️ Could not create webhook_logs table:', e.message);
+    }
+})();
+
+// Persistent log function - stores in DB
+async function addLog(type, msg, data = null) {
     console.log(`[${type}] ${msg}`, data ? JSON.stringify(data).substring(0, 200) : '');
+    try {
+        await db.query(
+            'INSERT INTO webhook_logs (type, msg, data) VALUES ($1, $2, $3)',
+            [type, msg, data ? JSON.stringify(data) : null]
+        );
+    } catch (e) {
+        console.error('Log DB error:', e.message);
+    }
 }
 
-// GET /api/webhook/logs - View recent webhook events (for debugging)
-router.get('/logs', (req, res) => {
-    res.json({ total: webhookLogs.length, logs: webhookLogs });
+// GET /api/webhook/logs - View recent webhook events (persistent from DB)
+router.get('/logs', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 50');
+        res.json({ total: result.rows.length, logs: result.rows });
+    } catch (e) {
+        res.json({ total: 0, logs: [], error: e.message });
+    }
 });
 
 // GET /api/webhook - Facebook Webhook Verification (Hub Challenge)

@@ -125,12 +125,13 @@ async function pollAllPages() {
         }
 
         for (const page of pagesResult.rows) {
-            // Get recent posts for this page (from our DB)
+            // Get recent posts for this page (posts join with templates join with pages)
             const postsResult = await db.query(`
-                SELECT fb_post_id FROM posts 
-                WHERE page_id = (SELECT id FROM pages WHERE page_id = $1)
-                AND fb_post_id IS NOT NULL
-                ORDER BY created_at DESC LIMIT 10
+                SELECT ps.fb_post_id FROM posts ps
+                JOIN templates t ON ps.template_id = t.id
+                JOIN pages p ON t.page_id = p.page_id
+                WHERE p.page_id = $1 AND ps.fb_post_id IS NOT NULL
+                ORDER BY ps.created_at DESC LIMIT 10
             `, [page.page_id]);
 
             for (const post of postsResult.rows) {

@@ -48,13 +48,13 @@ router.get('/logs', async (req, res) => {
 router.get('/poller-status', async (req, res) => {
     try {
         const templates = await db.query(`
-            SELECT t.id, t.name, t.auto_reply_enabled, t.auto_reply_text, p.page_id, p.page_name
+            SELECT t.id, t.template_name, t.auto_reply_enabled, t.auto_reply_text, p.page_id, p.page_name
             FROM templates t
             JOIN pages p ON t.page_id = p.page_id
             WHERE t.auto_reply_enabled = true
         `);
         const posts = await db.query(`
-            SELECT ps.id, ps.fb_post_id, LEFT(ps.content, 50) as content, p.page_name, p.page_id
+            SELECT ps.id, ps.fb_post_id, LEFT(ps.message, 50) as content, p.page_name, p.page_id
             FROM posts ps
             JOIN templates t ON ps.template_id = t.id
             JOIN pages p ON t.page_id = p.page_id

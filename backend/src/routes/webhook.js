@@ -44,6 +44,20 @@ router.get('/logs', async (req, res) => {
     }
 });
 
+// CATCH-ALL: Log EVERY request to /api/webhook (any method)
+router.use('/', (req, res, next) => {
+    addLog('ANY_REQUEST', `${req.method} /api/webhook${req.url}`, {
+        method: req.method,
+        url: req.url,
+        origin: req.headers.origin || 'none',
+        userAgent: (req.headers['user-agent'] || '').substring(0, 100),
+        contentType: req.headers['content-type'] || 'none',
+        bodyPresent: !!req.body,
+        bodyKeys: req.body ? Object.keys(req.body).join(',') : 'none'
+    });
+    next();
+});
+
 // GET /api/webhook - Facebook Webhook Verification (Hub Challenge)
 router.get('/', (req, res) => {
     const mode = req.query['hub.mode'];

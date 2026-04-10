@@ -64,19 +64,33 @@ async function processEvents(body) {
 
                     if (result.rows.length > 0) {
                         const post = result.rows[0];
+                        console.log(`🔍 [WEBHOOK] Match found for Post: ${post.fb_post_id} (Enabled: ${post.auto_reply_enabled})`);
                         if (post.auto_reply_enabled) {
                             const replyText = post.post_reply || post.template_reply;
                             if (replyText) {
-                                console.log(`🤖 [WEBHOOK] Replying to ${commentId}...`);
+                                console.log(`🤖 [WEBHOOK] Attempting reply to ${commentId}...`);
                                 if (!commentId.startsWith('TEST_ID_')) {
-                                    await facebook.replyToComment(commentId, post.page_access_token, replyText);
-                                    console.log('✨ [WEBHOOK] Auto-reply successful!');
+                                    try {
+                                        const fbRes = await facebook.replyToComment(commentId, post.page_access_token, replyText);
+                                        console.log('✅ [WEBHOOK] Auto-reply SUCCESS! FB_ID:', fbRes.id);
+                                    } catch (fbErr) {
+                                        console.error('❌ [WEBHOOK] Auto-reply FAILED at Facebook API:', fbErr.message);
+                                        // Specific log for common permission errors
+                                        if (fbErr.message.includes('permission') || fbErr.message.includes('manage_engagement')) {
+                                            console.error('💡 [HINT] This likely means the page_access_token lacks pages_manage_engagement scope.');
+                                        }
+                                    }
                                 } else {
                                     console.log('✨ [WEBHOOK] [TEST-SUCCESS] Diagnostic match found! (Skip actual FB call for mock ID)');
                                 }
+                            } else {
+                                console.log('⏭️ [WEBHOOK] Skipping: Reply text is empty');
                             }
+                        } else {
+                            console.log('⏭️ [WEBHOOK] Skipping: Auto-reply DISBLED for this template/post');
                         }
                     } else {
+                        console.log(`🔍 [WEBHOOK] No exact post match for ${postId}, checking fallback...`);
                         const fallback = await db.query(
                             `SELECT t.auto_reply_text, p.page_access_token
                              FROM templates t
@@ -86,15 +100,19 @@ async function processEvents(body) {
                             [pageId]
                         );
                         if (fallback.rows.length > 0) {
-                            console.log(`🤖 [WEBHOOK] Fallback reply to ${commentId}...`);
+                            console.log(`🤖 [WEBHOOK] Fallback reply to ${commentId} using latest template...`);
                             if (!commentId.startsWith('TEST_ID_')) {
-                                await facebook.replyToComment(commentId, fallback.rows[0].page_access_token, fallback.rows[0].auto_reply_text);
-                                console.log('✨ [WEBHOOK] Fallback auto-reply successful!');
+                                try {
+                                    const fbRes = await facebook.replyToComment(commentId, fallback.rows[0].page_access_token, fallback.rows[0].auto_reply_text);
+                                    console.log('✅ [WEBHOOK] Fallback Auto-reply SUCCESS! FB_ID:', fbRes.id);
+                                } catch (fbErr) {
+                                    console.error('❌ [WEBHOOK] Fallback Auto-reply FAILED at Facebook API:', fbErr.message);
+                                }
                             } else {
                                 console.log('✨ [WEBHOOK] [TEST-SUCCESS] Diagnostic fallback found!');
                             }
                         } else {
-                            console.log(`❌ [WEBHOOK] No match for Page: ${pageId}`);
+                            console.log(`❌ [WEBHOOK] No match or fallback enabled for Page: ${pageId}`);
                         }
                     }
                 } catch (err) {

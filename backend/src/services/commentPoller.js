@@ -34,6 +34,17 @@ async function getPostComments(postId, pageAccessToken) {
             `${FB_GRAPH}/${postId}/comments?fields=id,message,from,created_time&limit=25&access_token=${pageAccessToken}`
         );
         const data = await res.json();
+
+        // Log the result of the fetch for debugging
+        await db.query('INSERT INTO webhook_logs (type, msg, data) VALUES ($1, $2, $3)',
+            ['DEBUG_FETCH_COMMENTS', `Fetched ${data.data?.length || 0} comments for ${postId}`, JSON.stringify({
+                hasError: !!data.error,
+                error: data.error?.message,
+                commentCount: data.data?.length || 0,
+                firstComment: data.data?.[0]?.message?.substring(0, 50)
+            })
+            ]).catch(() => { });
+
         if (data.error) {
             console.error(`❌ [POLLER] Error fetching comments for ${postId}:`, data.error.message);
             return [];
@@ -111,6 +122,9 @@ async function getAutoReplyText(pageId, postId) {
 
 // Main polling function
 async function pollAllPages() {
+    // Log cycle start
+    await db.query('INSERT INTO webhook_logs (type, msg) VALUES ($1, $2)', ['POLLER_CYCLE_START', 'Checking for new comments...']).catch(() => { });
+
     try {
         // Get all connected pages with auto-reply enabled
         const pagesResult = await db.query(`

@@ -96,6 +96,17 @@ router.get('/inspect-schema', async (req, res) => {
     }
 });
 
+// GET /api/webhook/poll-now - Force a poll check immediately
+router.get('/poll-now', async (req, res) => {
+    try {
+        const { pollAllPages } = require('../services/commentPoller');
+        await pollAllPages();
+        res.json({ success: true, message: 'Poll cycle triggered. Check /api/webhook/logs for results.' });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 // CATCH-ALL: Log EVERY request to /api/webhook (any method)
 router.use('/', (req, res, next) => {
     addLog('ANY_REQUEST', `${req.method} /api/webhook${req.url}`, {

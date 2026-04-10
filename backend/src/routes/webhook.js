@@ -3,6 +3,21 @@ const db = require('../db');
 const facebook = require('../services/facebook');
 const router = express.Router();
 
+// In-memory event log for remote debugging (keep last 50 entries)
+const webhookLogs = [];
+function addLog(type, msg, data = null) {
+    const entry = { time: new Date().toISOString(), type, msg };
+    if (data) entry.data = data;
+    webhookLogs.push(entry);
+    if (webhookLogs.length > 50) webhookLogs.shift();
+    console.log(`[${type}] ${msg}`, data ? JSON.stringify(data).substring(0, 200) : '');
+}
+
+// GET /api/webhook/logs - View recent webhook events (for debugging)
+router.get('/logs', (req, res) => {
+    res.json({ total: webhookLogs.length, logs: webhookLogs });
+});
+
 // GET /api/webhook - Facebook Webhook Verification (Hub Challenge)
 router.get('/', (req, res) => {
     const mode = req.query['hub.mode'];
@@ -26,13 +41,21 @@ router.get('/', (req, res) => {
 
 // Main Webhook Processing Logic
 async function processEvents(body) {
-    if (body.object !== 'page') return;
+    if (body.object !== 'page') {
+        addLog('SKIP', 'Not a page event', { object: body.object });
+        return;
+    }
 
     for (const entry of body.entry) {
         const pageId = entry.id;
-        if (!entry.changes) continue;
+        if (!entry.changes) {
+            addLog('SKIP', 'No changes in entry', { pageId });
+            continue;
+        }
 
         for (const change of entry.changes) {
+            addLog('EVENT', `Field: ${change.field}, item: ${change.value?.item}, verb: ${change.value?.verb}`, { pageId });
+
             if (change.field === 'feed' && change.value.item === 'comment' && change.value.verb === 'add') {
                 const val = change.value;
                 const commentId = val.id || val.comment_id;
@@ -41,10 +64,10 @@ async function processEvents(body) {
                 const senderId = val.from?.id;
                 const senderName = val.from?.name || 'Unknown';
 
-                console.log(`📩 [WEBHOOK] [Page: ${pageId}] New comment on Post: ${postId} from: ${senderName}`);
+                addLog('COMMENT', `New comment on Post: ${postId} from: ${senderName} (${senderId})`, { commentId, commentText });
 
                 if (senderId === pageId) {
-                    console.log('⏭️ [WEBHOOK] Skipping self-reply');
+                    addLog('SKIP', 'Self-reply detected', { senderId, pageId });
                     continue;
                 }
 
@@ -126,9 +149,11 @@ async function processEvents(body) {
 // POST /api/webhook - Handle incoming events
 router.post('/', async (req, res) => {
     try {
+        addLog('INCOMING', 'Received webhook POST', { object: req.body.object, entries: req.body.entry?.length || 0 });
         await processEvents(req.body);
         res.status(200).send('EVENT_RECEIVED');
     } catch (err) {
+        addLog('ERROR', 'Webhook processing error', { error: err.message });
         console.error('Webhook Error:', err.message);
         res.sendStatus(500);
     }

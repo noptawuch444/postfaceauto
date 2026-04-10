@@ -77,6 +77,25 @@ router.get('/poller-status', async (req, res) => {
     }
 });
 
+// GET /api/webhook/inspect-schema - Debug: Show actual column types
+router.get('/inspect-schema', async (req, res) => {
+    try {
+        const tables = ['templates', 'pages', 'posts', 'replied_comments'];
+        const results = {};
+        for (const table of tables) {
+            const res = await db.query(`
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = '${table}'
+            `);
+            results[table] = res.rows;
+        }
+        res.json(results);
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 // CATCH-ALL: Log EVERY request to /api/webhook (any method)
 router.use('/', (req, res, next) => {
     addLog('ANY_REQUEST', `${req.method} /api/webhook${req.url}`, {

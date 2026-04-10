@@ -148,8 +148,12 @@ async function processEvents(body) {
 
 // POST /api/webhook - Handle incoming events
 router.post('/', async (req, res) => {
+    // BULLETPROOF: Log raw request info FIRST, before any processing
+    addLog('RAW_POST', `Body type: ${typeof req.body}, keys: ${req.body ? Object.keys(req.body).join(',') : 'NONE'}`,
+        { rawBody: JSON.stringify(req.body || {}).substring(0, 500) });
+
     try {
-        addLog('INCOMING', 'Received webhook POST', { object: req.body.object, entries: req.body.entry?.length || 0 });
+        addLog('INCOMING', 'Processing webhook', { object: req.body?.object, entries: req.body?.entry?.length || 0 });
         await processEvents(req.body);
         res.status(200).send('EVENT_RECEIVED');
     } catch (err) {

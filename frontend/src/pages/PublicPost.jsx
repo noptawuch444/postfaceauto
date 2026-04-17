@@ -412,10 +412,10 @@ function PublicPost() {
                 @keyframes gsPulse { 0% { transform:scale(1); opacity:1 } 50% { transform:scale(1.3); opacity:.5 } 100% { transform:scale(1); opacity:1 } }
                 @keyframes fadeSlideIn { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }
                 @keyframes gsFadeIn { from { opacity:0 } to { opacity:1 } }
-                ::-webkit-scrollbar { width: 6px; }
-                ::-webkit-scrollbar-track { background: transparent; }
-                ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 3px; }
-                ::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.4); }
+                ::-webkit-scrollbar { width: 8px; }
+                ::-webkit-scrollbar-track { background: rgba(201,168,76,0.05); border-radius: 8px; }
+                ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); box-shadow: 0 0 6px rgba(201,168,76,0.3); }
+                ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #e2c97e, #c9a84c); box-shadow: 0 0 12px rgba(201,168,76,0.5); }
 
                 @media (max-width: 480px) {
                     .gs-verify-container { padding: 15px !important; }

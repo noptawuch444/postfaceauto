@@ -109,7 +109,7 @@ const PostFormSection = ({
                 <button onClick={() => window.location.reload()} style={{ background: 'rgba(0,0,0,0.12)', border: 'none', color: 'rgba(0,0,0,0.5)', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>รีเฟรช</button>
             </div>
             {/* Card Body */}
-            <div style={{
+            <div className="gs-card-body-scroll" style={{
                 background: V.bgSec,
                 border: `1px solid ${V.bdr}`,
                 borderTop: 'none',
@@ -120,8 +120,10 @@ const PostFormSection = ({
                 minHeight: 0,
                 overflowY: 'auto',
                 overflowX: 'hidden',
-                height: '700px', // Fixed height for symmetry
-                maxHeight: '700px'
+                height: '700px',
+                maxHeight: '700px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(201,168,76,0.35) rgba(201,168,76,0.05)'
             }}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', position: 'relative', zIndex: 1, minWidth: 0 }}>
                     {/* Message */}
@@ -343,24 +345,26 @@ const PostFormSection = ({
                 .gs-image-scroller::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.15); border-radius: 3px; }
                 .gs-image-scroller::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.3); }
 
-                .gs-post-form-section ::-webkit-scrollbar { width: 8px; }
-                .gs-post-form-section ::-webkit-scrollbar-track {
-                    background: rgba(201,168,76,0.03);
+                .gs-card-body-scroll::-webkit-scrollbar { width: 8px; }
+                .gs-card-body-scroll::-webkit-scrollbar-track {
+                    background: rgba(201,168,76,0.05);
                     border-radius: 8px;
-                    border: 1px solid rgba(201,168,76,0.06);
+                    margin: 8px 0;
                 }
-                .gs-post-form-section ::-webkit-scrollbar-thumb {
-                    background: linear-gradient(180deg, rgba(201,168,76,0.35), rgba(201,168,76,0.15));
+                .gs-card-body-scroll::-webkit-scrollbar-thumb {
+                    background: linear-gradient(180deg, #c9a84c, #8a6d2b);
                     border-radius: 8px;
-                    border: 2px solid rgba(10,10,10,0.5);
-                    box-shadow: inset 0 0 6px rgba(201,168,76,0.15);
+                    border: 2px solid rgba(20,17,10,0.6);
+                    box-shadow: 0 0 6px rgba(201,168,76,0.3);
+                    transition: all 0.3s;
                 }
-                .gs-post-form-section ::-webkit-scrollbar-thumb:hover {
-                    background: linear-gradient(180deg, rgba(201,168,76,0.55), rgba(201,168,76,0.3));
-                    box-shadow: 0 0 8px rgba(201,168,76,0.2), inset 0 0 6px rgba(201,168,76,0.2);
+                .gs-card-body-scroll::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(180deg, #e2c97e, #c9a84c);
+                    box-shadow: 0 0 12px rgba(201,168,76,0.5), 0 0 4px rgba(201,168,76,0.3);
                 }
-                .gs-post-form-section ::-webkit-scrollbar-thumb:active {
-                    background: linear-gradient(180deg, rgba(201,168,76,0.7), rgba(201,168,76,0.4));
+                .gs-card-body-scroll::-webkit-scrollbar-thumb:active {
+                    background: linear-gradient(180deg, #f0d98e, #e2c97e);
+                    box-shadow: 0 0 16px rgba(201,168,76,0.6);
                 }
 
                 @keyframes toastSlideIn {

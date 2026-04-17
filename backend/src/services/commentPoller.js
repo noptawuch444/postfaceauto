@@ -94,17 +94,26 @@ async function markReplied(commentId, postId, pageId, replyText) {
 }
 
 // Get the auto-reply text for a page/post
+// Priority: 1) post-specific reply text, 2) template-level reply text
 async function getAutoReplyText(pageId, postId) {
-    // First try to match specific post
+    // Priority 1: Check if this specific post has its own reply text
     const postMatch = await db.query(`
-        SELECT t.auto_reply_text 
+        SELECT p.auto_reply_text as post_reply, t.auto_reply_text as template_reply
         FROM posts p 
         JOIN templates t ON p.template_id = t.id 
-        WHERE p.fb_post_id = $1 AND t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL
+        WHERE p.fb_post_id = $1 AND t.auto_reply_enabled = true
     `, [postId]);
 
     if (postMatch.rows.length > 0) {
-        return postMatch.rows[0].auto_reply_text;
+        const row = postMatch.rows[0];
+        // Use post-specific text first
+        if (row.post_reply && row.post_reply.trim() !== '') {
+            return row.post_reply;
+        }
+        // Fallback to template text
+        if (row.template_reply && row.template_reply.trim() !== '') {
+            return row.template_reply;
+        }
     }
 
     // Fallback: get any auto-reply template for this page
@@ -112,7 +121,7 @@ async function getAutoReplyText(pageId, postId) {
         SELECT t.auto_reply_text, p.page_access_token
         FROM templates t
         JOIN pages p ON t.page_id = p.page_id
-        WHERE p.page_id = $1 AND t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL
+        WHERE p.page_id = $1 AND t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL AND t.auto_reply_text != ''
         ORDER BY t.updated_at DESC LIMIT 1
     `, [pageId]);
 
@@ -133,8 +142,9 @@ async function pollAllPages() {
         const pagesResult = await db.query(`
             SELECT DISTINCT p.page_id, p.page_name, p.page_access_token
             FROM pages p
-            JOIN templates t ON t.page_id = p.page_id
-            WHERE t.auto_reply_enabled = true AND t.auto_reply_text IS NOT NULL
+            WHERE EXISTS (
+                SELECT 1 FROM templates t WHERE t.page_id = p.page_id AND t.auto_reply_enabled = true
+            )
         `);
 
         if (pagesResult.rows.length === 0) {

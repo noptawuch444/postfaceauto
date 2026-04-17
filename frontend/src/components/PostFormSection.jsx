@@ -1,6 +1,80 @@
-import React from 'react';
-import { Edit3, Image as ImageIcon, Film, Send, Clock, Calendar, AlertCircle, CheckCircle2, Save, Eye, Trash2, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit3, Image as ImageIcon, Film, Send, Clock, Calendar, AlertCircle, CheckCircle2, Save, Eye, Trash2, Loader2, Sparkles, X } from 'lucide-react';
 import { V } from '../theme';
+
+// Premium auto-dismiss success toast
+const SuccessToast = ({ message }) => {
+    const [visible, setVisible] = useState(true);
+    const [exiting, setExiting] = useState(false);
+    const timerRef = useRef(null);
+
+    useEffect(() => {
+        setVisible(true);
+        setExiting(false);
+        timerRef.current = setTimeout(() => {
+            setExiting(true);
+            setTimeout(() => setVisible(false), 400);
+        }, 4000);
+        return () => clearTimeout(timerRef.current);
+    }, [message]);
+
+    const handleClose = () => {
+        clearTimeout(timerRef.current);
+        setExiting(true);
+        setTimeout(() => setVisible(false), 400);
+    };
+
+    if (!visible) return null;
+
+    return (
+        <div style={{
+            position: 'relative',
+            overflow: 'hidden',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(201,168,76,0.12), rgba(94,189,114,0.08))',
+            border: '1px solid rgba(201,168,76,0.25)',
+            padding: '14px 16px',
+            animation: exiting ? 'toastSlideOut 0.4s ease-in forwards' : 'toastSlideIn 0.4s cubic-bezier(0.22,1,0.36,1) forwards',
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 20px rgba(201,168,76,0.1), inset 0 1px 0 rgba(255,255,255,0.05)'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                    width: '32px', height: '32px', borderRadius: '10px',
+                    background: 'linear-gradient(135deg, rgba(94,189,114,0.2), rgba(201,168,76,0.15))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1px solid rgba(94,189,114,0.2)',
+                    flexShrink: 0
+                }}>
+                    <Sparkles size={16} style={{ color: '#c9a84c' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#e2c97e', marginBottom: '2px' }}>สำเร็จ!</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(94,189,114,0.9)' }}>{message}</div>
+                </div>
+                <button onClick={handleClose} style={{
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px', padding: '4px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'rgba(255,255,255,0.4)', transition: 'all 0.2s'
+                }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+                >
+                    <X size={14} />
+                </button>
+            </div>
+            {/* Progress bar */}
+            <div style={{
+                position: 'absolute', bottom: 0, left: 0, height: '3px',
+                background: 'linear-gradient(90deg, #c9a84c, #5ebd72, #c9a84c)',
+                backgroundSize: '200% 100%',
+                animation: `toastProgress 4s linear forwards, toastShimmer 1.5s ease-in-out infinite`,
+                borderRadius: '0 0 12px 12px'
+            }} />
+        </div>
+    );
+};
 
 const PostFormSection = ({
     message, setMessage,
@@ -246,8 +320,8 @@ const PostFormSection = ({
                     )}
 
                     {/* Alerts */}
-                    {error && <div style={{ color: V.err, fontSize: '13px', padding: '12px', background: 'rgba(224,85,85,0.08)', borderRadius: '10px', border: '1px solid rgba(224,85,85,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertCircle size={15} /> {error}</div>}
-                    {success && <div style={{ color: V.ok, fontSize: '13px', padding: '12px', background: 'rgba(94,189,114,0.08)', borderRadius: '10px', border: '1px solid rgba(94,189,114,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={15} /> {success}</div>}
+                    {error && <div style={{ color: V.err, fontSize: '13px', padding: '12px', background: 'rgba(224,85,85,0.08)', borderRadius: '10px', border: '1px solid rgba(224,85,85,0.15)', display: 'flex', alignItems: 'center', gap: '8px', animation: 'fadeSlideIn 0.3s ease-out' }}><AlertCircle size={15} /> {error}</div>}
+                    {success && <SuccessToast message={success} />}
 
                     {/* Action Buttons */}
                     <div className="gs-actions-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '8px', marginTop: '10px' }}>
@@ -268,6 +342,43 @@ const PostFormSection = ({
                 .gs-image-scroller::-webkit-scrollbar-track { background: rgba(201,168,76,0.03); border-radius: 3px; }
                 .gs-image-scroller::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.15); border-radius: 3px; }
                 .gs-image-scroller::-webkit-scrollbar-thumb:hover { background: rgba(201,168,76,0.3); }
+
+                .gs-post-form-section ::-webkit-scrollbar { width: 8px; }
+                .gs-post-form-section ::-webkit-scrollbar-track {
+                    background: rgba(201,168,76,0.03);
+                    border-radius: 8px;
+                    border: 1px solid rgba(201,168,76,0.06);
+                }
+                .gs-post-form-section ::-webkit-scrollbar-thumb {
+                    background: linear-gradient(180deg, rgba(201,168,76,0.35), rgba(201,168,76,0.15));
+                    border-radius: 8px;
+                    border: 2px solid rgba(10,10,10,0.5);
+                    box-shadow: inset 0 0 6px rgba(201,168,76,0.15);
+                }
+                .gs-post-form-section ::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(180deg, rgba(201,168,76,0.55), rgba(201,168,76,0.3));
+                    box-shadow: 0 0 8px rgba(201,168,76,0.2), inset 0 0 6px rgba(201,168,76,0.2);
+                }
+                .gs-post-form-section ::-webkit-scrollbar-thumb:active {
+                    background: linear-gradient(180deg, rgba(201,168,76,0.7), rgba(201,168,76,0.4));
+                }
+
+                @keyframes toastSlideIn {
+                    from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes toastSlideOut {
+                    from { opacity: 1; transform: translateY(0) scale(1); }
+                    to { opacity: 0; transform: translateY(-12px) scale(0.95); }
+                }
+                @keyframes toastProgress {
+                    from { width: 100%; }
+                    to { width: 0%; }
+                }
+                @keyframes toastShimmer {
+                    0% { background-position: -200% center; }
+                    100% { background-position: 200% center; }
+                }
             `}</style>
             </div>
 

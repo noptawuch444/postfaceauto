@@ -299,13 +299,13 @@ function TemplatesManage() {
                                 </div>
 
                                 <div className="adm-fg" style={{ background: V.bgL, padding: '16px', borderRadius: '12px', border: `1px solid ${V.pri}20` }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: formData.auto_reply_enabled ? '12px' : '0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <span style={{ fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <AlertCircle size={14} color={formData.auto_reply_enabled ? V.ok : V.pri} />
                                                 ระบบตอบกลับคอมเมนต์อัตโนมัติ
                                             </span>
-                                            <small style={{ opacity: 0.6, fontSize: '12px' }}>ตอบกลับเมื่อมีคนมาคอมเมนต์ที่โพสต์</small>
+                                            <small style={{ opacity: 0.6, fontSize: '12px' }}>เปิด/ปิดระบบตอบกลับอัตโนมัติสำหรับเทมเพลตนี้</small>
                                         </div>
                                         <label className="gs-switch">
                                             <input
@@ -318,15 +318,10 @@ function TemplatesManage() {
                                     </div>
 
                                     {formData.auto_reply_enabled && (
-                                        <div className="fade-in">
-                                            <textarea
-                                                className="adm-input"
-                                                style={{ minHeight: '80px', fontSize: '14px', background: V.bgDark }}
-                                                placeholder="ข้อความที่ต้องการให้บอทตอบกลับ..."
-                                                value={formData.auto_reply_text}
-                                                onChange={e => setFormData({ ...formData, auto_reply_text: e.target.value })}
-                                                required={formData.auto_reply_enabled}
-                                            />
+                                        <div className="fade-in" style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(201,168,76,0.06)', borderRadius: '8px', border: '1px solid rgba(201,168,76,0.12)' }}>
+                                            <p style={{ fontSize: '12px', color: V.priL, margin: 0, lineHeight: '1.6' }}>
+                                                💡 ข้อความตอบกลับตั้งค่าแยกในแต่ละโพสต์ได้ที่หน้า <strong style={{ color: V.pri }}>Public Link</strong> ตอนสร้างโพสต์
+                                            </p>
                                         </div>
                                     )}
                                 </div>

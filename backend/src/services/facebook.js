@@ -70,11 +70,14 @@ async function uploadPhotoToPage(pageId, pageAccessToken, filePath) {
 }
 
 // Post photo from memory buffer (upload + publish in one call)
-async function postPhotoFromBuffer(pageId, pageAccessToken, message, buffer, filename) {
+async function postPhotoFromBuffer(pageId, pageAccessToken, message, buffer, filename, mimetype) {
     const form = new FormData();
     form.append('access_token', pageAccessToken);
     form.append('message', message || '');
-    form.append('source', buffer, { filename: filename || 'photo.jpg' });
+    form.append('source', buffer, {
+        filename: filename || 'photo.jpg',
+        contentType: mimetype || 'image/jpeg'
+    });
 
     const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
         method: 'POST',
@@ -88,10 +91,13 @@ async function postPhotoFromBuffer(pageId, pageAccessToken, message, buffer, fil
 }
 
 // Upload photo from memory buffer without publishing (for scheduled/multi-photo)
-async function uploadPhotoFromBuffer(pageId, pageAccessToken, buffer, filename) {
+async function uploadPhotoFromBuffer(pageId, pageAccessToken, buffer, filename, mimetype) {
     const form = new FormData();
     form.append('access_token', pageAccessToken);
-    form.append('source', buffer, { filename: filename || 'photo.jpg' });
+    form.append('source', buffer, {
+        filename: filename || 'photo.jpg',
+        contentType: mimetype || 'image/jpeg'
+    });
     form.append('published', 'false');
 
     const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {

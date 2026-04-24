@@ -138,7 +138,7 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
             for (const file of req.files) {
                 const photoId = await facebook.uploadPhotoFromBuffer(
                     template.page_id, template.page_access_token,
-                    file.buffer, file.originalname
+                    file.buffer, file.originalname, file.mimetype
                 );
                 fbPhotoIds.push(photoId);
 

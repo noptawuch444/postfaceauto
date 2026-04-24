@@ -89,6 +89,40 @@ async function postMultiPhotoFeed(pageId, pageAccessToken, message, photoIds) {
     return data;
 }
 
+// Post photo to a page using a public URL (no local file needed)
+async function postPhotoToPageByUrl(pageId, pageAccessToken, message, imageUrl) {
+    const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            url: imageUrl,
+            message: message || '',
+            access_token: pageAccessToken
+        }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data;
+}
+
+// Upload a photo by URL without publishing (for multi-photo posts)
+async function uploadPhotoToPageByUrl(pageId, pageAccessToken, imageUrl) {
+    const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            url: imageUrl,
+            published: false,
+            access_token: pageAccessToken
+        }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.id;
+}
+
 // Validate a page access token
 async function validatePageToken(pageAccessToken) {
     const res = await fetch(`${FB_GRAPH}/me?fields=id,name,picture{data{url}}&access_token=${pageAccessToken}`);
@@ -134,6 +168,8 @@ module.exports = {
     postPhotoToPage,
     uploadPhotoToPage,
     postMultiPhotoFeed,
+    postPhotoToPageByUrl,
+    uploadPhotoToPageByUrl,
     validatePageToken,
     replyToComment,
     subscribePageToWebhook

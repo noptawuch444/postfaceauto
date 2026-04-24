@@ -41,7 +41,6 @@ function startScheduler() {
                     const imageUrl = post.image_url;
 
                     if (imageUrl) {
-                        const path = require('path');
                         let urls = [];
 
                         // Parse JSON only if it looks like an array, otherwise treat as single URL
@@ -52,19 +51,17 @@ function startScheduler() {
                         }
 
                         if (Array.isArray(urls) && urls.length > 1) {
+                            // Multi-photo: upload each by URL, then create feed post
                             const photoIds = [];
                             for (const url of urls) {
-                                const filename = url.split('/').pop();
-                                const filePath = path.join(__dirname, '..', '..', 'uploads', filename);
-                                const id = await facebook.uploadPhotoToPage(post.page_id, post.page_access_token, filePath);
+                                const id = await facebook.uploadPhotoToPageByUrl(post.page_id, post.page_access_token, url);
                                 photoIds.push(id);
                             }
                             fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
                         } else {
+                            // Single photo: post directly by URL
                             const url = Array.isArray(urls) ? urls[0] : imageUrl;
-                            const filename = url.split('/').pop();
-                            const filePath = path.join(__dirname, '..', '..', 'uploads', filename);
-                            fbResult = await facebook.postPhotoToPage(post.page_id, post.page_access_token, post.message || '', filePath);
+                            fbResult = await facebook.postPhotoToPageByUrl(post.page_id, post.page_access_token, post.message || '', url);
                         }
                     } else {
                         fbResult = await facebook.postToPage(

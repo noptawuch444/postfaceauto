@@ -76,7 +76,8 @@ async function postPhotoFromBuffer(pageId, pageAccessToken, message, buffer, fil
     form.append('message', message || '');
     form.append('source', buffer, {
         filename: filename || 'photo.jpg',
-        contentType: mimetype || 'image/jpeg'
+        contentType: mimetype || 'image/jpeg',
+        knownLength: buffer.length
     });
 
     const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
@@ -96,7 +97,8 @@ async function uploadPhotoFromBuffer(pageId, pageAccessToken, buffer, filename, 
     form.append('access_token', pageAccessToken);
     form.append('source', buffer, {
         filename: filename || 'photo.jpg',
-        contentType: mimetype || 'image/jpeg'
+        contentType: mimetype || 'image/jpeg',
+        knownLength: buffer.length
     });
     form.append('published', 'false');
 

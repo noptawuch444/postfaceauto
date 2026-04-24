@@ -1,6 +1,56 @@
-import React from 'react';
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff } from 'lucide-react';
 import { V } from '../theme';
+
+// Image component with broken-image fallback
+const HistoryImage = ({ src, fbPostId }) => {
+    const [broken, setBroken] = useState(false);
+
+    if (broken) {
+        return (
+            <div style={{
+                borderRadius: '8px', overflow: 'hidden',
+                border: `1px solid ${V.bdr}`, background: 'rgba(201,168,76,0.04)',
+                padding: '24px', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: '10px',
+                minHeight: '120px'
+            }}>
+                <ImageOff size={28} style={{ color: 'rgba(201,168,76,0.35)' }} />
+                <p style={{ fontSize: '12px', color: V.txtS, margin: 0, textAlign: 'center' }}>
+                    รูปภาพไม่สามารถแสดงได้
+                    <br /><span style={{ fontSize: '11px', opacity: 0.6 }}>(ไฟล์อาจถูกลบเมื่อเซิร์ฟเวอร์รีสตาร์ท)</span>
+                </p>
+                {fbPostId && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); window.open(`https://facebook.com/${fbPostId}`, '_blank'); }}
+                        style={{
+                            background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
+                            color: '#1877f2', padding: '6px 14px', borderRadius: '8px',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                            fontSize: '12px', fontWeight: '700', fontFamily: 'inherit',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.2)'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.1)'; }}
+                    >
+                        <ExternalLink size={12} /> ดูรูปบน Facebook
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
+            <img
+                src={src}
+                style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }}
+                loading="lazy"
+                onError={() => setBroken(true)}
+            />
+        </div>
+    );
+};
 
 const HistorySection = ({
     history,
@@ -162,19 +212,13 @@ const HistorySection = ({
                                                             try {
                                                                 const urls = JSON.parse(item.image_url);
                                                                 return Array.isArray(urls) ? urls.map((url, i) => (
-                                                                    <div key={i} style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
-                                                                        <img src={url} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} loading="lazy" />
-                                                                    </div>
+                                                                    <HistoryImage key={i} src={url} fbPostId={item.fb_post_id} />
                                                                 )) : (
-                                                                    <div style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
-                                                                        <img src={item.image_url} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
-                                                                    </div>
+                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
                                                                 );
                                                             } catch (e) {
                                                                 return (
-                                                                    <div style={{ borderRadius: '8px', overflow: 'hidden', border: `1px solid ${V.bdr}`, background: '#000' }}>
-                                                                        <img src={item.image_url} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
-                                                                    </div>
+                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
                                                                 );
                                                             }
                                                         })()}

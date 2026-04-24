@@ -5,11 +5,8 @@ const db = require('../db');
 const facebook = require('../services/facebook');
 const router = express.Router();
 
-// Multer for public post image/video uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, path.join(__dirname, '..', '..', 'uploads')),
-    filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-});
+// Multer with memory storage (no disk writes)
+const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
     const allowed = /^(image|video)\//;
     if (allowed.test(file.mimetype)) {
@@ -132,30 +129,40 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
             }
         }
 
-        // Build image URLs if uploaded
-        let imageUrls = [];
+        // Upload all images to Facebook immediately (both for instant and scheduled posts)
+        let fbPhotoIds = [];
+        let fbCdnUrls = [];
+
         if (req.files && req.files.length > 0) {
-            imageUrls = req.files.map(file => `${req.protocol}://${req.get('host')}/uploads/${file.filename}`);
+            console.log(`📸 Uploading ${req.files.length} image(s) to Facebook (unpublished)...`);
+            for (const file of req.files) {
+                const photoId = await facebook.uploadPhotoFromBuffer(
+                    template.page_id, template.page_access_token,
+                    file.buffer, file.originalname
+                );
+                fbPhotoIds.push(photoId);
+
+                // Get CDN URL for this photo
+                const cdnUrl = await facebook.getPhotoUrl(photoId, template.page_access_token);
+                if (cdnUrl) fbCdnUrls.push(cdnUrl);
+            }
+            console.log(`✅ Uploaded ${fbPhotoIds.length} photo(s) to Facebook`);
         }
-        // Store as JSON string or comma-separated. JSON is better for flexibility.
-        const imageUrlData = imageUrls.length > 0 ? JSON.stringify(imageUrls) : null;
+
+        const imageUrlData = fbCdnUrls.length > 0 ? JSON.stringify(fbCdnUrls) : null;
+        const photoIdsData = fbPhotoIds.length > 0 ? JSON.stringify(fbPhotoIds) : null;
 
         // Post immediately
         if (post_now === 'true' || post_now === true) {
             try {
                 let fbResult;
 
-                if (req.files && req.files.length > 1) {
-                    // Multi-photo post
-                    const photoIds = [];
-                    for (const file of req.files) {
-                        const id = await facebook.uploadPhotoToPage(template.page_id, template.page_access_token, file.path);
-                        photoIds.push(id);
-                    }
-                    fbResult = await facebook.postMultiPhotoFeed(template.page_id, template.page_access_token, message || '', photoIds);
-                } else if (req.files && req.files.length === 1) {
-                    // Single photo post
-                    fbResult = await facebook.postPhotoToPage(template.page_id, template.page_access_token, message || '', req.files[0].path);
+                if (fbPhotoIds.length > 1) {
+                    // Multi-photo: create feed post with already-uploaded photos
+                    fbResult = await facebook.postMultiPhotoFeed(template.page_id, template.page_access_token, message || '', fbPhotoIds);
+                } else if (fbPhotoIds.length === 1) {
+                    // Single photo: create feed post with the one photo
+                    fbResult = await facebook.postMultiPhotoFeed(template.page_id, template.page_access_token, message || '', fbPhotoIds);
                 } else {
                     // Text only post
                     fbResult = await facebook.postToPage(template.page_id, template.page_access_token, message);
@@ -163,9 +170,9 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
 
                 // Save to DB as success
                 await db.query(
-                    `INSERT INTO posts (template_id, message, image_url, status, fb_post_id, auto_reply_text)
-                     VALUES ($1, $2, $3, 'success', $4, $5)`,
-                    [template.id, message, imageUrlData, fbResult.id || fbResult.post_id, auto_reply_text || null]
+                    `INSERT INTO posts (template_id, message, image_url, status, fb_post_id, auto_reply_text, fb_photo_ids)
+                     VALUES ($1, $2, $3, 'success', $4, $5, $6)`,
+                    [template.id, message, imageUrlData, fbResult.id || fbResult.post_id, auto_reply_text || null, photoIdsData]
                 );
 
                 return res.json({ success: true, message: 'โพสต์สำเร็จ! 🎉', fb_post_id: fbResult.id || fbResult.post_id });
@@ -180,15 +187,15 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
             }
         }
 
-        // Schedule post
+        // Schedule post (images are already uploaded to Facebook)
         if (!schedule_time) {
             return res.status(400).json({ error: 'กรุณาตั้งเวลาโพสต์หรือเลือกโพสต์ทันที' });
         }
 
         await db.query(
-            `INSERT INTO posts (template_id, message, image_url, schedule_time, status, auto_reply_text)
-             VALUES ($1, $2, $3, $4, 'pending', $5)`,
-            [template.id, message, imageUrlData, schedule_time, auto_reply_text || null]
+            `INSERT INTO posts (template_id, message, image_url, schedule_time, status, auto_reply_text, fb_photo_ids)
+             VALUES ($1, $2, $3, $4, 'pending', $5, $6)`,
+            [template.id, message, imageUrlData, schedule_time, auto_reply_text || null, photoIdsData]
         );
 
         res.json({ success: true, message: 'ตั้งเวลาโพสต์เรียบร้อย! ⏰' });

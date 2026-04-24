@@ -38,20 +38,23 @@ function startScheduler() {
                     }
 
                     let fbResult;
-                    const imageUrl = post.image_url;
 
-                    if (imageUrl) {
+                    // NEW: Check if photos were pre-uploaded to Facebook (fb_photo_ids column)
+                    if (post.fb_photo_ids) {
+                        const photoIds = JSON.parse(post.fb_photo_ids);
+                        console.log(`📸 [SCHEDULER] Post ${post.id}: Using ${photoIds.length} pre-uploaded photo(s)`);
+                        fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
+                    }
+                    // FALLBACK: Old posts that only have image URLs (before fb_photo_ids was added)
+                    else if (post.image_url) {
                         let urls = [];
-
-                        // Parse JSON only if it looks like an array, otherwise treat as single URL
-                        if (imageUrl.startsWith('[')) {
-                            try { urls = JSON.parse(imageUrl); } catch (e) { urls = [imageUrl]; }
+                        if (post.image_url.startsWith('[')) {
+                            try { urls = JSON.parse(post.image_url); } catch (e) { urls = [post.image_url]; }
                         } else {
-                            urls = [imageUrl];
+                            urls = [post.image_url];
                         }
 
                         if (Array.isArray(urls) && urls.length > 1) {
-                            // Multi-photo: upload each by URL, then create feed post
                             const photoIds = [];
                             for (const url of urls) {
                                 const id = await facebook.uploadPhotoToPageByUrl(post.page_id, post.page_access_token, url);
@@ -59,11 +62,12 @@ function startScheduler() {
                             }
                             fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
                         } else {
-                            // Single photo: post directly by URL
-                            const url = Array.isArray(urls) ? urls[0] : imageUrl;
+                            const url = Array.isArray(urls) ? urls[0] : post.image_url;
                             fbResult = await facebook.postPhotoToPageByUrl(post.page_id, post.page_access_token, post.message || '', url);
                         }
-                    } else {
+                    }
+                    // Text only
+                    else {
                         fbResult = await facebook.postToPage(
                             post.page_id,
                             post.page_access_token,

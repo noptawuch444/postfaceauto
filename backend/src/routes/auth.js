@@ -72,6 +72,9 @@ router.get('/setup-admin', async (req, res) => {
         await db.query(`CREATE TABLE IF NOT EXISTS settings (key VARCHAR(255) PRIMARY KEY, value TEXT);`);
         await db.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS auto_reply_text TEXT;`);
 
+        // MIGRATION: fb_photo_ids for persistent image storage via Facebook
+        await db.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS fb_photo_ids TEXT;`);
+
         res.send('<h1>✅ Admin account ready & Database migrated!</h1><p>You can now log in with <b>admin@autopost.com</b> and <b>admin123</b></p>');
     } catch (error) {
         res.status(500).send(`<h1>❌ Error</h1><p>${error.message}</p>`);

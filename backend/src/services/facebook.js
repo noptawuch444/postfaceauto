@@ -69,6 +69,53 @@ async function uploadPhotoToPage(pageId, pageAccessToken, filePath) {
     return data.id; // Returns the Facebook ID of the photo
 }
 
+// Post photo from memory buffer (upload + publish in one call)
+async function postPhotoFromBuffer(pageId, pageAccessToken, message, buffer, filename) {
+    const form = new FormData();
+    form.append('access_token', pageAccessToken);
+    form.append('message', message || '');
+    form.append('source', buffer, { filename: filename || 'photo.jpg' });
+
+    const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data;
+}
+
+// Upload photo from memory buffer without publishing (for scheduled/multi-photo)
+async function uploadPhotoFromBuffer(pageId, pageAccessToken, buffer, filename) {
+    const form = new FormData();
+    form.append('access_token', pageAccessToken);
+    form.append('source', buffer, { filename: filename || 'photo.jpg' });
+    form.append('published', 'false');
+
+    const res = await fetch(`${FB_GRAPH}/${pageId}/photos`, {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.id;
+}
+
+// Get the CDN URL of a Facebook photo by its ID
+async function getPhotoUrl(photoId, pageAccessToken) {
+    const res = await fetch(`${FB_GRAPH}/${photoId}?fields=images&access_token=${pageAccessToken}`);
+    const data = await res.json();
+    if (data.error) return null;
+    if (data.images && data.images.length > 0) {
+        return data.images[0].source; // Largest image first
+    }
+    return null;
+}
+
 // Create a feed post with multiple attached media (photos)
 async function postMultiPhotoFeed(pageId, pageAccessToken, message, photoIds) {
     const mediaParam = photoIds.map(id => ({ media_fbid: id }));
@@ -170,6 +217,9 @@ module.exports = {
     postMultiPhotoFeed,
     postPhotoToPageByUrl,
     uploadPhotoToPageByUrl,
+    postPhotoFromBuffer,
+    uploadPhotoFromBuffer,
+    getPhotoUrl,
     validatePageToken,
     replyToComment,
     subscribePageToWebhook

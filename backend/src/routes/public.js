@@ -179,20 +179,16 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                 let fbResult;
                 // Post immediately via Make.com Webhook
                 if (fbCdnUrls.length >= 1) {
-                    // Send message and the FIRST photo URL to Make.com 
-                    // (To support multi-photo via webhook, Make.com requires complex iterators, so we send the first one natively)
-                    // If we want multiple photos, Make.com is tricky, but let's send form data 
-                    // Actually, let's just make a JSON POST to Make webhook with the URLs and let the user map it
+                    // Append photo URL to message so Facebook renders it as a link preview
+                    const fullMessage = (message || '') + '\n' + fbCdnUrls[0];
                     const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
                     const fetch = require('node-fetch');
                     const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: message || '',
-                            page_id: template.page_id,
-                            photo_url_1: fbCdnUrls[0],
-                            photo_urls: fbCdnUrls // array
+                            message: fullMessage,
+                            page_id: template.page_id
                         }),
                     });
                     const text = await res.text();

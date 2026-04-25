@@ -39,41 +39,34 @@ function startScheduler() {
 
                     let fbResult;
 
-                    // NEW: Check if photos were pre-uploaded to Facebook (fb_photo_ids column)
-                    if (post.fb_photo_ids) {
-                        const photoIds = JSON.parse(post.fb_photo_ids);
-                        console.log(`📸 [SCHEDULER] Post ${post.id}: Using ${photoIds.length} pre-uploaded photo(s)`);
-                        fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
-                    }
-                    // FALLBACK: Old posts that only have image URLs (before fb_photo_ids was added)
-                    else if (post.image_url) {
-                        let urls = [];
-                        if (post.image_url.startsWith('[')) {
-                            try { urls = JSON.parse(post.image_url); } catch (e) { urls = [post.image_url]; }
-                        } else {
-                            urls = [post.image_url];
-                        }
+                    // Send to Make.com Webhook if configured, else fallback to null to avoid breaking
+                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    const fetch = require('node-fetch');
 
-                        if (Array.isArray(urls) && urls.length > 1) {
-                            const photoIds = [];
-                            for (const url of urls) {
-                                const id = await facebook.uploadPhotoToPageByUrl(post.page_id, post.page_access_token, url);
-                                photoIds.push(id);
-                            }
-                            fbResult = await facebook.postMultiPhotoFeed(post.page_id, post.page_access_token, post.message || '', photoIds);
-                        } else {
-                            const url = Array.isArray(urls) ? urls[0] : post.image_url;
-                            fbResult = await facebook.postPhotoToPageByUrl(post.page_id, post.page_access_token, post.message || '', url);
+                    let photoUrls = [];
+                    if (post.image_url) {
+                        try {
+                            photoUrls = post.image_url.startsWith('[') ? JSON.parse(post.image_url) : [post.image_url];
+                        } catch (e) {
+                            photoUrls = [post.image_url];
                         }
                     }
-                    // Text only
-                    else {
-                        fbResult = await facebook.postToPage(
-                            post.page_id,
-                            post.page_access_token,
-                            post.message
-                        );
-                    }
+
+                    const payload = {
+                        message: post.message || '',
+                        photo_url_1: photoUrls.length > 0 ? photoUrls[0] : null,
+                        photo_urls: photoUrls.length > 0 ? photoUrls : null
+                    };
+
+                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const text = await res.text();
+                    console.log(`✅ [SCHEDULER] Post ${post.id} sent to Make.com Webhook:`, text);
+                    fbResult = { id: 'make_' + Date.now() };
 
                     await db.query(
                         `UPDATE posts SET status = 'success', fb_post_id = $1 WHERE id = $2`,

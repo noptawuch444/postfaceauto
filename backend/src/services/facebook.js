@@ -216,6 +216,47 @@ async function subscribePageToWebhook(pageId, pageAccessToken) {
     return data;
 }
 
+// ==========================================
+// MAKE.COM WEBHOOK INTEGRATION
+// ==========================================
+
+// Post text-only to Make.com Webhook
+async function postTextToMakeWebhook(message) {
+    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing");
+
+    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+    });
+
+    // Make returns text 'Accepted'
+    const text = await res.text();
+    return { id: 'make_' + Date.now(), status: text };
+}
+
+// Post photo from buffer to Make.com Webhook
+async function postPhotoToMakeWebhook(message, buffer, filename, mimetype) {
+    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing");
+
+    const form = new FormData();
+    form.append('message', message || '');
+    form.append('photo', buffer, {
+        filename: filename || 'photo.jpg',
+        contentType: mimetype || 'image/jpeg',
+        knownLength: buffer.length
+    });
+
+    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+    });
+
+    const text = await res.text();
+    return { id: 'make_photo_' + Date.now(), status: text };
+}
+
 module.exports = {
     exchangeCodeForToken,
     getPageAccounts,
@@ -230,5 +271,7 @@ module.exports = {
     getPhotoUrl,
     validatePageToken,
     replyToComment,
-    subscribePageToWebhook
+    subscribePageToWebhook,
+    postTextToMakeWebhook,
+    postPhotoToMakeWebhook
 };

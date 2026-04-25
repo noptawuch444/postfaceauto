@@ -177,16 +177,36 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
         if (post_now === 'true' || post_now === true) {
             try {
                 let fbResult;
-
-                if (fbPhotoIds.length > 1) {
-                    // Multi-photo: create feed post with already-uploaded photos
-                    fbResult = await facebook.postMultiPhotoFeed(template.page_id, template.page_access_token, message || '', fbPhotoIds);
-                } else if (fbPhotoIds.length === 1) {
-                    // Single photo: create feed post with the one photo
-                    fbResult = await facebook.postMultiPhotoFeed(template.page_id, template.page_access_token, message || '', fbPhotoIds);
+                // Post immediately via Make.com Webhook
+                if (fbCdnUrls.length >= 1) {
+                    // Send message and the FIRST photo URL to Make.com 
+                    // (To support multi-photo via webhook, Make.com requires complex iterators, so we send the first one natively)
+                    // If we want multiple photos, Make.com is tricky, but let's send form data 
+                    // Actually, let's just make a JSON POST to Make webhook with the URLs and let the user map it
+                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    const fetch = require('node-fetch');
+                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: message || '',
+                            photo_url_1: fbCdnUrls[0],
+                            photo_urls: fbCdnUrls // array
+                        }),
+                    });
+                    const text = await res.text();
+                    fbResult = { id: 'make_' + Date.now() };
                 } else {
-                    // Text only post
-                    fbResult = await facebook.postToPage(template.page_id, template.page_access_token, message);
+                    // Text only post to Make
+                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    const fetch = require('node-fetch');
+                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message || '' }),
+                    });
+                    const text = await res.text();
+                    fbResult = { id: 'make_' + Date.now() };
                 }
 
                 // Save to DB as success

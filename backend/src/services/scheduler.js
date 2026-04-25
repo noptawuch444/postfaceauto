@@ -39,8 +39,8 @@ function startScheduler() {
 
                     let fbResult;
 
-                    // Send to Make.com Webhook if configured, else fallback to null to avoid breaking
-                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    // Send to Make.com Webhook if configured, else fallback to hardcoded
+                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
                     const fetch = require('node-fetch');
 
                     let photoUrls = [];
@@ -58,7 +58,7 @@ function startScheduler() {
                         photo_urls: photoUrls.length > 0 ? photoUrls : null
                     };
 
-                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                    const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload),

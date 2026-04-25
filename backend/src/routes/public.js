@@ -183,9 +183,9 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                     // (To support multi-photo via webhook, Make.com requires complex iterators, so we send the first one natively)
                     // If we want multiple photos, Make.com is tricky, but let's send form data 
                     // Actually, let's just make a JSON POST to Make webhook with the URLs and let the user map it
-                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
                     const fetch = require('node-fetch');
-                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                    const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -198,9 +198,9 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                     fbResult = { id: 'make_' + Date.now() };
                 } else {
                     // Text only post to Make
-                    if (!process.env.MAKE_WEBHOOK_URL) throw new Error("Make.com Webhook URL is missing in server env");
+                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
                     const fetch = require('node-fetch');
-                    const res = await fetch(process.env.MAKE_WEBHOOK_URL, {
+                    const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: message || '' }),

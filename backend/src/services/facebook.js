@@ -223,13 +223,13 @@ async function subscribePageToWebhook(pageId, pageAccessToken) {
 const DEFAULT_MAKE_WEBHOOK = 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
 
 // Post text-only to Make.com Webhook
-async function postTextToMakeWebhook(message) {
+async function postTextToMakeWebhook(message, pageId) {
     const webhookUrl = process.env.MAKE_WEBHOOK_URL || DEFAULT_MAKE_WEBHOOK;
 
     const res = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, page_id: pageId }),
     });
 
     // Make returns text 'Accepted'
@@ -238,11 +238,12 @@ async function postTextToMakeWebhook(message) {
 }
 
 // Post photo from buffer to Make.com Webhook
-async function postPhotoToMakeWebhook(message, buffer, filename, mimetype) {
+async function postPhotoToMakeWebhook(message, buffer, filename, mimetype, pageId) {
     const webhookUrl = process.env.MAKE_WEBHOOK_URL || DEFAULT_MAKE_WEBHOOK;
 
     const form = new FormData();
     form.append('message', message || '');
+    form.append('page_id', pageId || '');
     form.append('photo', buffer, {
         filename: filename || 'photo.jpg',
         contentType: mimetype || 'image/jpeg',

@@ -190,6 +190,7 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             message: message || '',
+                            page_id: template.page_id,
                             photo_url_1: fbCdnUrls[0],
                             photo_urls: fbCdnUrls // array
                         }),

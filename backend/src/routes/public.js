@@ -5,6 +5,27 @@ const db = require('../db');
 const facebook = require('../services/facebook');
 const router = express.Router();
 
+// ---- Legal Endpoints for Facebook App Review / Live Mode ----
+const htmlTemplate = (title, content) => `
+<!DOCTYPE html>
+<html lang="th">
+<head><meta charset="UTF-8"><title>${title}</title><style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6;}</style></head>
+<body><h1>${title}</h1>${content}</body>
+</html>`;
+
+router.get('/privacy', (req, res) => {
+    res.send(htmlTemplate('Privacy Policy', '<p>We respect your privacy. This application only uses data explicitly granted through Facebook API to auto-post content on behalf of the page owner. We do not sell or misuse your data.</p>'));
+});
+
+router.get('/terms', (req, res) => {
+    res.send(htmlTemplate('Terms of Service', '<p>This service is a private automation tool. By using it, you agree to comply with Facebook Terms of Service and community standards.</p>'));
+});
+
+router.get('/data-deletion', (req, res) => {
+    res.send(htmlTemplate('Data Deletion Instructions', '<p>If you wish to delete your data, please remove this app from your Facebook Business Integrations settings. All related data on our server can be manually deleted by the administrator.</p>'));
+});
+// -------------------------------------------------------------
+
 // Multer with memory storage (no disk writes)
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {

@@ -203,7 +203,10 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                     const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: message || '' }),
+                        body: JSON.stringify({
+                            message: message || '',
+                            page_id: template.page_id
+                        }),
                     });
                     const text = await res.text();
                     fbResult = { id: 'make_' + Date.now() };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Edit3, Image as ImageIcon, Film, Send, Clock, Calendar, AlertCircle, CheckCircle2, Save, Eye, Trash2, Loader2, Sparkles, X } from 'lucide-react';
 import { V } from '../theme';
 
@@ -99,18 +99,30 @@ const PostFormSection = ({
     const focusIn = (e) => { e.target.style.borderColor = V.pri; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)'; };
     const focusOut = (e) => { e.target.style.borderColor = V.bdr; e.target.style.boxShadow = 'none'; };
 
-    // Helper to format date in Thai DD/MM/YYYY+543 and 24h น.
-    const formatThaiDate = (val) => {
-        if (!val) return 'คลิกเพื่อเลือกเวลา...';
-        try {
-            const date = new Date(val);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear() + 543;
-            const hours = String(date.getHours()).padStart(2, '0');
-            const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${day}/${month}/${year} ${hours}:${mins} น.`;
-        } catch (e) { return 'คลิกเพื่อเลือกเวลา...'; }
+    // Derived states for separate Date and Time inputs
+    // scheduleTime format: YYYY-MM-DDTHH:mm
+    const splitTime = useMemo(() => {
+        if (!scheduleTime) return { date: '', time: '' };
+        const [d, t] = scheduleTime.split('T');
+        return { date: d, time: t || '' };
+    }, [scheduleTime]);
+
+    const handleDateChange = (newDate) => {
+        setScheduleTime(`${newDate}T${splitTime.time || '00:00'}`);
+    };
+
+    const handleTimeChange = (newTime) => {
+        setScheduleTime(`${splitTime.date || new Date().toISOString().split('T')[0]}T${newTime}`);
+    };
+
+    // Helper to format date label (พ.ศ.)
+    const getThaiDateLabel = (dateStr) => {
+        if (!dateStr) return 'วันที่';
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const beYear = d.getFullYear() + 543;
+        return `${day}/${month}/${beYear}`;
     };
 
     return (
@@ -190,50 +202,42 @@ const PostFormSection = ({
                     </div>
 
                     {!postNow && (
-                        <div style={{ animation: 'fadeSlideIn 0.3s ease-out' }}>
-                            <div
-                                onClick={() => dateTimeInputRef.current?.showPicker()}
-                                style={{ position: 'relative', width: '100%', height: '54px', cursor: 'pointer' }}
-                            >
+                        <div style={{ animation: 'fadeSlideIn 0.3s ease-out', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            {/* Date Picker (Custom Look) */}
+                            <div style={{ position: 'relative', height: '54px', cursor: 'pointer' }} onClick={() => document.getElementById('gs-date-input').showPicker()}>
                                 <input
-                                    type="datetime-local"
-                                    ref={dateTimeInputRef}
-                                    lang="th"
-                                    value={scheduleTime}
-                                    onChange={e => setScheduleTime(e.target.value)}
-                                    required={!postNow}
-                                    disabled={postNow}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        opacity: 0,
-                                        zIndex: 1,
-                                        pointerEvents: 'none'
-                                    }}
+                                    id="gs-date-input"
+                                    type="date"
+                                    value={splitTime.date}
+                                    onChange={e => handleDateChange(e.target.value)}
+                                    style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', pointerEvents: 'none' }}
                                 />
                                 <div style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    background: '#0a0a0a',
-                                    border: `1.5px solid ${V.pri}`,
-                                    borderRadius: '14px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '0 16px',
-                                    gap: '12px',
-                                    boxSizing: 'border-box',
-                                    zIndex: 2
+                                    height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px',
+                                    display: 'flex', alignItems: 'center', padding: '0 12px', gap: '10px', boxSizing: 'border-box'
                                 }}>
-                                    <Calendar size={18} style={{ color: V.pri }} />
-                                    <div style={{ fontSize: '15px', fontWeight: '800', color: V.pri, letterSpacing: '0.2px' }}>
-                                        {formatThaiDate(scheduleTime)}
-                                    </div>
+                                    <Calendar size={16} style={{ color: V.pri }} />
+                                    <div style={{ fontSize: '14px', fontWeight: '800', color: V.pri }}>{getThaiDateLabel(splitTime.date)}</div>
+                                </div>
+                            </div>
+
+                            {/* Time Input (Typable) */}
+                            <div style={{ position: 'relative', height: '54px' }}>
+                                <div style={{
+                                    height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px',
+                                    display: 'flex', alignItems: 'center', padding: '0 12px', gap: '8px', boxSizing: 'border-box'
+                                }}>
+                                    <Clock size={16} style={{ color: V.pri }} />
+                                    <input
+                                        type="time"
+                                        value={splitTime.time}
+                                        onChange={e => handleTimeChange(e.target.value)}
+                                        style={{
+                                            background: 'none', border: 'none', color: '#fff', fontSize: '16px', fontWeight: '800',
+                                            width: '100%', outline: 'none', fontFamily: 'inherit', colorScheme: 'dark'
+                                        }}
+                                    />
+                                    <div style={{ fontSize: '11px', color: V.pri, fontWeight: '700', opacity: 0.8 }}>น.</div>
                                 </div>
                             </div>
                         </div>
@@ -284,6 +288,12 @@ const PostFormSection = ({
                 @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
                 @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+                /* Style native time input */
+                input[type="time"]::-webkit-calendar-picker-indicator {
+                    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
+                    cursor: pointer;
+                }
             `}</style>
         </div>
     );

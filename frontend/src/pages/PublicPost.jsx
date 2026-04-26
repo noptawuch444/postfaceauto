@@ -218,6 +218,21 @@ function PublicPost() {
         setAutoReplyEnabled(false); setAutoReplyText('');
     };
 
+    const handleSetPostNow = (val) => {
+        setPostNow(val);
+        if (!val && !scheduleTime) {
+            // Default to current local time in YYYY-MM-DDTHH:mm format
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            setScheduleTime(`${year}-${month}-${day}T${hours}:${mins}`);
+        }
+    };
+
+
     const handleDeleteHistory = (postId) => {
         setPendingDeleteId(postId);
         setIsDeleteModalOpen(true);
@@ -368,8 +383,9 @@ function PublicPost() {
                     <PostFormSection
                         message={message} setMessage={setMessage}
                         imagePreviews={imagePreviews} handleImageChange={handleImageChange} removeImage={removeImage}
-                        postNow={postNow} setPostNow={setPostNow}
+                        postNow={postNow} setPostNow={handleSetPostNow}
                         scheduleTime={scheduleTime} setScheduleTime={setScheduleTime}
+
                         dateTimeInputRef={dateTimeInputRef}
                         handleSubmit={handleSubmit} loading={loading} error={error} success={success}
                         onPreview={() => setShowPreview(true)}

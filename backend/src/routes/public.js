@@ -177,38 +177,32 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
         if (post_now === 'true' || post_now === true) {
             try {
                 let fbResult;
-                // Post directly to Facebook Graph API (no Make.com)
-                if (fbPhotoIds.length > 1) {
-                    // Multi-photo post: use already-uploaded photo IDs
-                    fbResult = await facebook.postMultiPhotoFeed(
-                        template.page_id, template.page_access_token,
-                        message || '', fbPhotoIds
-                    );
-                    console.log(`✅ Multi-photo post published:`, fbResult);
-                } else if (fbPhotoIds.length === 1) {
-                    // Single photo: publish the unpublished photo with a caption
-                    // Re-upload as published with message
-                    if (fbCdnUrls.length > 0) {
-                        fbResult = await facebook.postPhotoToPageByUrl(
-                            template.page_id, template.page_access_token,
-                            message || '', fbCdnUrls[0]
-                        );
-                    } else {
-                        // Fallback: post as multi-photo feed
-                        fbResult = await facebook.postMultiPhotoFeed(
-                            template.page_id, template.page_access_token,
-                            message || '', fbPhotoIds
-                        );
-                    }
-                    console.log(`✅ Single-photo post published:`, fbResult);
-                } else {
-                    // Text-only post
-                    fbResult = await facebook.postToPage(
-                        template.page_id, template.page_access_token,
-                        message || ''
-                    );
-                    console.log(`✅ Text-only post published:`, fbResult);
+                // Post via Make.com Webhook (for public visibility)
+                const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
+                const nodeFetch = require('node-fetch');
+
+                const payload = {
+                    message: message || '',
+                    page_id: template.page_id,
+                    photo_url_1: fbCdnUrls.length > 0 ? fbCdnUrls[0] : '',
+                    has_photo: fbCdnUrls.length > 0
+                };
+
+                console.log(`📤 Sending to Make.com:`, JSON.stringify(payload));
+
+                const makeRes = await nodeFetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const makeText = await makeRes.text();
+                console.log(`✅ Make.com response (${makeRes.status}):`, makeText);
+
+                if (makeRes.status !== 200) {
+                    throw new Error(`Make.com returned status ${makeRes.status}: ${makeText}`);
                 }
+
+                fbResult = { id: 'make_' + Date.now() };
 
                 // Save to DB as success
                 await db.query(

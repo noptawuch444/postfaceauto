@@ -261,14 +261,16 @@ router.post('/:slug/history', async (req, res) => {
         }
 
         const hResult = await db.query(
-            `SELECT id, message, image_url, schedule_time, status, created_at, fb_post_id
-             FROM posts
-             WHERE template_id = $1
-             ORDER BY created_at DESC LIMIT 50`,
+            `SELECT p.id, p.message, p.image_url, p.schedule_time, p.status, p.created_at, p.fb_post_id, t.page_id
+             FROM posts p
+             JOIN templates t ON p.template_id = t.id
+             WHERE p.template_id = $1
+             ORDER BY p.created_at DESC LIMIT 50`,
             [template.id]
         );
 
         res.json(hResult.rows);
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

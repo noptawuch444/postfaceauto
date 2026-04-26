@@ -3,7 +3,7 @@ import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIc
 import { V } from '../theme';
 
 // Image component with broken-image fallback
-const HistoryImage = ({ src, fbPostId }) => {
+const HistoryImage = ({ src, fbPageId }) => {
     const [broken, setBroken] = useState(false);
 
     if (broken) {
@@ -20,9 +20,9 @@ const HistoryImage = ({ src, fbPostId }) => {
                     รูปภาพไม่สามารถแสดงได้
                     <br /><span style={{ fontSize: '11px', opacity: 0.6 }}>(ไฟล์อาจถูกลบเมื่อเซิร์ฟเวอร์รีสตาร์ท)</span>
                 </p>
-                {fbPostId && (
+                {fbPageId && (
                     <button
-                        onClick={(e) => { e.stopPropagation(); window.open(`https://facebook.com/${fbPostId}`, '_blank'); }}
+                        onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${fbPageId}`, '_blank'); }}
                         style={{
                             background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
                             color: '#1877f2', padding: '6px 14px', borderRadius: '8px',
@@ -33,7 +33,7 @@ const HistoryImage = ({ src, fbPostId }) => {
                         onMouseOver={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.2)'; }}
                         onMouseOut={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.1)'; }}
                     >
-                        <ExternalLink size={12} /> ดูรูปบน Facebook
+                        <ExternalLink size={12} /> ดูโพสต์บน Facebook
                     </button>
                 )}
             </div>
@@ -81,8 +81,8 @@ const HistorySection = ({
                 overflowX: 'hidden',
                 flex: 1,
                 minHeight: 0,
-                height: '700px', // Strict fixed height
-                maxHeight: '700px'
+                height: '740px',
+                maxHeight: '740px'
             }}>
                 {history.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 20px', opacity: 0.3 }}>
@@ -93,7 +93,7 @@ const HistorySection = ({
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {groupedHistory.map(([dateLabel, items], gi) => (
                             <div key={gi} style={{ display: 'flex', flexDirection: 'column' }}>
-                                {/* ── Date Divider (sticky) ── */}
+                                {/* Date Divider */}
                                 <div onClick={() => setCollapsedDates(prev => ({ ...prev, [dateLabel]: !prev[dateLabel] }))}
                                     style={{
                                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -107,14 +107,14 @@ const HistorySection = ({
                                         <Calendar size={14} /> {dateLabel}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span className="gs-item-count" style={{ fontSize: '12px', color: '#5a4e38', fontWeight: '400', background: 'rgba(201,168,76,0.06)', padding: '2px 9px', borderRadius: '10px' }}>
+                                        <span style={{ fontSize: '12px', color: '#5a4e38', fontWeight: '400', background: 'rgba(201,168,76,0.06)', padding: '2px 9px', borderRadius: '10px' }}>
                                             {items.length} รายการ
                                         </span>
                                         <span style={{ color: '#5a4e38', fontSize: '12px' }}>{collapsedDates[dateLabel] ? '▶' : '▼'}</span>
                                     </div>
                                 </div>
 
-                                {/* ── Items ── */}
+                                {/* Items */}
                                 {!collapsedDates[dateLabel] && (
                                     <div style={{ padding: '12px 14px 14px' }}>
                                         {items.map((item, idx) => (
@@ -125,7 +125,7 @@ const HistorySection = ({
                                                     cursor: item.image_url ? 'pointer' : 'default',
                                                 }}
                                             >
-                                                {/* Status row */}
+                                                {/* Meta Row */}
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: item.message ? '8px' : '0' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                         <span style={{
@@ -142,49 +142,36 @@ const HistorySection = ({
                                                             <Clock size={10} />
                                                             {(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                                                         </span>
-                                                        {item.fb_post_id && item.status === 'success' && (
+
+                                                        {item.status === 'success' && (
                                                             <button
-                                                                onClick={(e) => { e.stopPropagation(); window.open(`https://facebook.com/${item.fb_post_id}`, '_blank'); }}
+                                                                onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${item.page_id}`, '_blank'); }}
                                                                 style={{
-                                                                    background: 'rgba(24,119,242,0.1)',
-                                                                    border: '1px solid rgba(24,119,242,0.2)',
-                                                                    color: '#1877f2',
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '6px',
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '4px',
-                                                                    fontSize: '10px',
-                                                                    fontWeight: '700',
-                                                                    marginLeft: '4px'
+                                                                    background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
+                                                                    color: '#1877f2', padding: '4px 8px', borderRadius: '6px',
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                                                                    fontSize: '10px', fontWeight: '700', marginLeft: '4px'
                                                                 }}
                                                             >
                                                                 <ExternalLink size={10} /> ดูบน Facebook
                                                             </button>
                                                         )}
+
                                                         {item.status === 'pending' && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
                                                                 style={{
-                                                                    background: 'rgba(224,85,85,0.1)',
-                                                                    border: '1px solid rgba(224,85,85,0.2)',
-                                                                    color: V.err,
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '6px',
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '4px',
-                                                                    fontSize: '10px',
-                                                                    fontWeight: '700',
-                                                                    marginLeft: '4px'
+                                                                    background: 'rgba(224,85,85,0.1)', border: '1px solid rgba(224,85,85,0.2)',
+                                                                    color: V.err, padding: '4px 8px', borderRadius: '6px',
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                                                                    fontSize: '10px', fontWeight: '700', marginLeft: '4px'
                                                                 }}
                                                             >
                                                                 <Trash2 size={10} /> ยกเลิก
                                                             </button>
                                                         )}
                                                     </div>
+
                                                     {item.image_url && (
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '11px', fontWeight: '600' }}>
                                                             <ImageIcon size={12} />
@@ -193,33 +180,31 @@ const HistorySection = ({
                                                                     try {
                                                                         const urls = JSON.parse(item.image_url);
                                                                         return Array.isArray(urls) ? `มีรูป ${urls.length} ใบ` : 'มีรูปภาพ';
-                                                                    } catch (e) {
-                                                                        return 'มีรูปภาพ';
-                                                                    }
+                                                                    } catch (e) { return 'มีรูปภาพ'; }
                                                                 })()} {expandedItems[item.id] ? '▲' : '▼'}
                                                             </span>
                                                         </div>
                                                     )}
                                                 </div>
+
                                                 {/* Message */}
                                                 {item.message && (
                                                     <p style={{ fontSize: '13px', color: V.txt, lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{item.message}</p>
                                                 )}
-                                                {/* Image (Expanded) */}
+
+                                                {/* Images (Expanded) */}
                                                 {item.image_url && expandedItems[item.id] && (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                                                         {(() => {
                                                             try {
                                                                 const urls = JSON.parse(item.image_url);
                                                                 return Array.isArray(urls) ? urls.map((url, i) => (
-                                                                    <HistoryImage key={i} src={url} fbPostId={item.fb_post_id} />
+                                                                    <HistoryImage key={i} src={url} fbPageId={item.page_id} />
                                                                 )) : (
-                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
+                                                                    <HistoryImage src={item.image_url} fbPageId={item.page_id} />
                                                                 );
                                                             } catch (e) {
-                                                                return (
-                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
-                                                                );
+                                                                return <HistoryImage src={item.image_url} fbPageId={item.page_id} />;
                                                             }
                                                         })()}
                                                     </div>

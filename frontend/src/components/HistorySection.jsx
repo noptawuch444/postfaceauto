@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles } from 'lucide-react';
 import { V } from '../theme';
 
+const getValidImageUrl = (rawUrl) => {
+    if (!rawUrl) return null;
+    if (typeof rawUrl !== 'string') return rawUrl;
+    try {
+        const parsed = JSON.parse(rawUrl);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+        return rawUrl;
+    } catch (e) {
+        return rawUrl;
+    }
+};
+
 // Image component with broken-image fallback
 const HistoryImage = ({ src, fbPostId }) => {
     const [broken, setBroken] = useState(false);
@@ -113,8 +125,8 @@ const HistorySection = ({
                                                     <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} style={{ background: 'none', border: 'none', color: 'rgba(224,85,85,0.4)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
                                                 </div>
                                                 {item.message && <p style={{ fontSize: '13px', color: V.txt, margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{expandedItems[item.id] ? item.message : (item.message.length > 100 ? item.message.substring(0, 100) + '...' : item.message)}</p>}
-                                                {expandedItems[item.id] && item.image_url && <div style={{ marginTop: '14px', animation: 'gsFadeIn 0.3s ease' }}><HistoryImage src={item.image_url} fbPostId={item.fb_post_id} /></div>}
-                                                {item.image_url && <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '10px', fontWeight: '700' }}><ImageIcon size={10} /> {expandedItems[item.id] ? 'ย่อรูปภาพ' : 'ดูรูปภาพโพสต์'} {expandedItems[item.id] ? '▲' : '▼'}</div>}
+                                                {expandedItems[item.id] && getValidImageUrl(item.image_url) && <div style={{ marginTop: '14px', animation: 'gsFadeIn 0.3s ease' }}><HistoryImage src={getValidImageUrl(item.image_url)} fbPostId={item.fb_post_id} /></div>}
+                                                {getValidImageUrl(item.image_url) && <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '10px', fontWeight: '700' }}><ImageIcon size={10} /> {expandedItems[item.id] ? 'ย่อรูปภาพ' : 'ดูรูปภาพโพสต์'} {expandedItems[item.id] ? '▲' : '▼'}</div>}
                                             </div>
                                         ))}
                                     </div>

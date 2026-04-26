@@ -177,38 +177,37 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
         if (post_now === 'true' || post_now === true) {
             try {
                 let fbResult;
-                // Post immediately via Make.com Webhook
-                if (fbCdnUrls.length >= 1) {
-                    // Send photo URL as a separate field for Make.com Router to handle
-                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
-                    const fetch = require('node-fetch');
-                    const res = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: message || '',
-                            page_id: template.page_id,
-                            photo_url_1: fbCdnUrls[0],
-                            has_photo: true
-                        }),
-                    });
-                    const text = await res.text();
-                    fbResult = { id: 'make_' + Date.now() };
+                // Post directly to Facebook Graph API (no Make.com)
+                if (fbPhotoIds.length > 1) {
+                    // Multi-photo post: use already-uploaded photo IDs
+                    fbResult = await facebook.postMultiPhotoFeed(
+                        template.page_id, template.page_access_token,
+                        message || '', fbPhotoIds
+                    );
+                    console.log(`✅ Multi-photo post published:`, fbResult);
+                } else if (fbPhotoIds.length === 1) {
+                    // Single photo: publish the unpublished photo with a caption
+                    // Re-upload as published with message
+                    if (fbCdnUrls.length > 0) {
+                        fbResult = await facebook.postPhotoToPageByUrl(
+                            template.page_id, template.page_access_token,
+                            message || '', fbCdnUrls[0]
+                        );
+                    } else {
+                        // Fallback: post as multi-photo feed
+                        fbResult = await facebook.postMultiPhotoFeed(
+                            template.page_id, template.page_access_token,
+                            message || '', fbPhotoIds
+                        );
+                    }
+                    console.log(`✅ Single-photo post published:`, fbResult);
                 } else {
-                    // Text only post to Make
-                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
-                    const fetch = require('node-fetch');
-                    const res = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: message || '',
-                            page_id: template.page_id,
-                            has_photo: false
-                        }),
-                    });
-                    const text = await res.text();
-                    fbResult = { id: 'make_' + Date.now() };
+                    // Text-only post
+                    fbResult = await facebook.postToPage(
+                        template.page_id, template.page_access_token,
+                        message || ''
+                    );
+                    console.log(`✅ Text-only post published:`, fbResult);
                 }
 
                 // Save to DB as success

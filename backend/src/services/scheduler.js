@@ -39,11 +39,9 @@ function startScheduler() {
 
                     let fbResult;
 
-                    // Send to Make.com Webhook if configured, else fallback to hardcoded
-                    const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
-                    const fetch = require('node-fetch');
-
+                    // Post directly to Facebook Graph API (no Make.com)
                     let photoUrls = [];
+                    let photoIds = [];
                     if (post.image_url) {
                         try {
                             photoUrls = post.image_url.startsWith('[') ? JSON.parse(post.image_url) : [post.image_url];
@@ -51,23 +49,36 @@ function startScheduler() {
                             photoUrls = [post.image_url];
                         }
                     }
+                    if (post.fb_photo_ids) {
+                        try {
+                            photoIds = typeof post.fb_photo_ids === 'string' ? JSON.parse(post.fb_photo_ids) : post.fb_photo_ids;
+                        } catch (e) {
+                            photoIds = [];
+                        }
+                    }
 
-                    const payload = {
-                        message: post.message || '',
-                        page_id: post.page_id,
-                        photo_url_1: photoUrls.length > 0 ? photoUrls[0] : null,
-                        has_photo: photoUrls.length > 0
-                    };
-
-                    const res = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    });
-
-                    const text = await res.text();
-                    console.log(`✅ [SCHEDULER] Post ${post.id} sent to Make.com Webhook:`, text);
-                    fbResult = { id: 'make_' + Date.now() };
+                    if (photoIds.length > 1) {
+                        // Multi-photo post using pre-uploaded photo IDs
+                        fbResult = await facebook.postMultiPhotoFeed(
+                            post.page_id, post.page_access_token,
+                            post.message || '', photoIds
+                        );
+                        console.log(`✅ [SCHEDULER] Multi-photo post ${post.id} published:`, fbResult);
+                    } else if (photoUrls.length > 0) {
+                        // Single photo post using CDN URL
+                        fbResult = await facebook.postPhotoToPageByUrl(
+                            post.page_id, post.page_access_token,
+                            post.message || '', photoUrls[0]
+                        );
+                        console.log(`✅ [SCHEDULER] Photo post ${post.id} published:`, fbResult);
+                    } else {
+                        // Text-only post
+                        fbResult = await facebook.postToPage(
+                            post.page_id, post.page_access_token,
+                            post.message || ''
+                        );
+                        console.log(`✅ [SCHEDULER] Text post ${post.id} published:`, fbResult);
+                    }
 
                     await db.query(
                         `UPDATE posts SET status = 'success', fb_post_id = $1 WHERE id = $2`,

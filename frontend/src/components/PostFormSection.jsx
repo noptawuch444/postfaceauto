@@ -130,8 +130,9 @@ const PostFormSection = ({
         <div className="gs-post-form-section" style={{
             display: 'flex', flexDirection: 'column',
             background: V.bgSec, border: `1px solid ${V.bdr}`, borderRadius: '14px',
-            overflow: 'hidden', height: '820px', position: 'relative'
+            overflow: 'hidden', height: '100%', position: 'relative'
         }}>
+
             {/* Header */}
             <div style={{ background: V.pri, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, zIndex: 10 }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1a1200', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
@@ -143,8 +144,9 @@ const PostFormSection = ({
             {/* Scrollable Body */}
             <div className="gs-card-body-scroll" style={{
                 flex: 1, overflowY: 'auto', overflowX: 'hidden',
-                padding: '16px 20px', position: 'relative'
+                padding: '16px 20px', position: 'relative', minHeight: 0
             }}>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
                         <label style={{ display: 'block', fontSize: '13px', color: V.txtS, marginBottom: '8px' }}>ข้อความ <span style={{ opacity: 0.5 }}>({message.length} ตัวอักษร)</span></label>

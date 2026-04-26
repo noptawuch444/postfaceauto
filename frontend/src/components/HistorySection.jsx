@@ -59,8 +59,9 @@ const HistorySection = ({
         <div className="gs-history-section" style={{
             display: 'flex', flexDirection: 'column',
             background: V.bgSec, border: `1px solid ${V.bdr}`, borderRadius: '14px',
-            overflow: 'hidden', height: '820px', position: 'relative'
+            overflow: 'hidden', height: '100%', position: 'relative'
         }}>
+
             {/* Header */}
             <div style={{ background: V.pri, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, zIndex: 10 }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1a1200', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
@@ -71,8 +72,9 @@ const HistorySection = ({
             {/* Scrollable Body */}
             <div className="gs-history-scroll-area" style={{
                 flex: 1, overflowY: 'auto', overflowX: 'hidden',
-                padding: 0, position: 'relative'
+                padding: 0, position: 'relative', minHeight: 0
             }}>
+
                 {history.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 20px', opacity: 0.3 }}>
                         <MessageSquare size={40} style={{ margin: '0 auto 12px', color: V.txtS }} />

@@ -364,20 +364,31 @@ function PublicPost() {
     }
 
     return (
-        <div className="gs-public-page" style={{ background: V.bgMain, minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: '"Prompt", sans-serif', color: V.txt, position: 'relative', overflow: 'hidden' }}>
+        <div className="gs-public-page" style={{
+            background: V.bgMain,
+            height: '100vh',
+            maxHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: '"Prompt", sans-serif',
+            color: V.txt,
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
             <GoldenSnow zIndex={500} />
             <PublicHeader template={template} />
 
             <div className="gs-content-wrapper" style={{
                 flex: 1,
-                padding: '24px 40px',
+                padding: '16px 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '24px',
+                gap: '16px',
                 width: '100%',
                 minHeight: 0,
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                overflow: 'hidden'
             }}>
                 <div className="gs-main-grid" style={{
                     display: 'grid',
@@ -386,10 +397,11 @@ function PublicPost() {
                     alignItems: 'stretch',
                     position: 'relative',
                     zIndex: 1,
-                    flex: '1 1 auto',
+                    flex: 1,
                     minHeight: 0,
                     width: '100%'
                 }}>
+
 
                     <PostFormSection
                         message={message} setMessage={setMessage}

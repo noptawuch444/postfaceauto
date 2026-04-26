@@ -63,24 +63,25 @@ const HistorySection = ({
     onPreview
 }) => {
     return (
-        <div className="gs-history-section" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, maxWidth: '100%' }}>
-            {/* Header */}
-            <div style={{ background: V.pri, padding: '14px 20px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="gs-history-section" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* Header matches PostFormSection layout */}
+            <div style={{ background: V.pri, padding: '14px 20px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1a1200', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                     <History size={16} /> รายการรวมทั้งหมด ({history.length})
                 </h3>
             </div>
-            {/* Card Body */}
+
+            {/* Scrollable area matches PostFormSection height and style */}
             <div className="gs-history-scroll-area" style={{
                 background: V.bgSec,
                 border: `1px solid ${V.bdr}`,
                 borderTop: 'none',
                 borderRadius: '0 0 14px 14px',
                 padding: 0,
-                overflowY: 'auto',
-                overflowX: 'hidden',
                 flex: 1,
                 minHeight: 0,
+                overflowY: 'auto',
+                overflowX: 'hidden',
                 height: '740px',
                 maxHeight: '740px'
             }}>
@@ -114,7 +115,7 @@ const HistorySection = ({
                                     </div>
                                 </div>
 
-                                {/* Items */}
+                                {/* Items Container */}
                                 {!collapsedDates[dateLabel] && (
                                     <div style={{ padding: '12px 14px 14px' }}>
                                         {items.map((item, idx) => (
@@ -148,65 +149,40 @@ const HistorySection = ({
                                                                 onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${item.fb_post_id}`, '_blank'); }}
                                                                 style={{
                                                                     background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
-                                                                    color: '#1877f2', padding: '4px 8px', borderRadius: '6px',
-                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                                                                    fontSize: '10px', fontWeight: '700', marginLeft: '4px'
+                                                                    color: '#1877f2', padding: '6px 14px', borderRadius: '8px',
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                                                                    fontSize: '11px', fontWeight: '700', fontFamily: 'inherit',
+                                                                    transition: 'all 0.2s'
                                                                 }}
                                                             >
-                                                                <ExternalLink size={10} /> ดูบน Facebook
-                                                            </button>
-                                                        )}
-
-                                                        {item.status === 'pending' && (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
-                                                                style={{
-                                                                    background: 'rgba(224,85,85,0.1)', border: '1px solid rgba(224,85,85,0.2)',
-                                                                    color: V.err, padding: '4px 8px', borderRadius: '6px',
-                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                                                                    fontSize: '10px', fontWeight: '700', marginLeft: '4px'
-                                                                }}
-                                                            >
-                                                                <Trash2 size={10} /> ยกเลิก
+                                                                <ExternalLink size={10} /> ดูบน FB
                                                             </button>
                                                         )}
                                                     </div>
 
-                                                    {item.image_url && (
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '11px', fontWeight: '600' }}>
-                                                            <ImageIcon size={12} />
-                                                            <span>
-                                                                {(() => {
-                                                                    try {
-                                                                        const urls = JSON.parse(item.image_url);
-                                                                        return Array.isArray(urls) ? `มีรูป ${urls.length} ใบ` : 'มีรูปภาพ';
-                                                                    } catch (e) { return 'มีรูปภาพ'; }
-                                                                })()} {expandedItems[item.id] ? '▲' : '▼'}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} style={{ background: 'none', border: 'none', color: 'rgba(224,85,85,0.4)', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'all 0.2s' }}>
+                                                        <Trash2 size={14} />
+                                                    </button>
                                                 </div>
 
-                                                {/* Message */}
+                                                {/* Message Content */}
                                                 {item.message && (
-                                                    <p style={{ fontSize: '13px', color: V.txt, lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{item.message}</p>
+                                                    <p style={{ fontSize: '13px', color: V.txt, margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                                        {expandedItems[item.id] ? item.message : (item.message.length > 100 ? item.message.substring(0, 100) + '...' : item.message)}
+                                                    </p>
                                                 )}
 
-                                                {/* Images (Expanded) */}
-                                                {item.image_url && expandedItems[item.id] && (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-                                                        {(() => {
-                                                            try {
-                                                                const urls = JSON.parse(item.image_url);
-                                                                return Array.isArray(urls) ? urls.map((url, i) => (
-                                                                    <HistoryImage key={i} src={url} fbPostId={item.fb_post_id} />
-                                                                )) : (
-                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
-                                                                );
-                                                            } catch (e) {
-                                                                return <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />;
-                                                            }
-                                                        })()}
+                                                {/* Expanded Details (Images) */}
+                                                {expandedItems[item.id] && item.image_url && (
+                                                    <div style={{ marginTop: '14px', animation: 'gsFadeIn 0.3s ease' }}>
+                                                        <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
+                                                    </div>
+                                                )}
+
+                                                {/* Toggle Label */}
+                                                {item.image_url && (
+                                                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', color: V.pri, fontSize: '10px', fontWeight: '700' }}>
+                                                        <ImageIcon size={10} /> {expandedItems[item.id] ? 'ย่อรูปภาพ' : 'ดูรูปภาพโพสต์'} {expandedItems[item.id] ? '▲' : '▼'}
                                                     </div>
                                                 )}
                                             </div>
@@ -221,13 +197,9 @@ const HistorySection = ({
 
             <style>{`
                 .gs-history-scroll-area::-webkit-scrollbar { width: 8px; }
-                .gs-history-scroll-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-                .gs-history-scroll-area::-webkit-scrollbar-thumb { 
-                    background: linear-gradient(180deg, ${V.priD}, ${V.pri}); 
-                    border-radius: 4px;
-                    border: 2px solid ${V.bgSec};
-                }
-                .gs-history-scroll-area::-webkit-scrollbar-thumb:hover { background: ${V.priL}; }
+                .gs-history-scroll-area::-webkit-scrollbar-track { background: rgba(201,168,76,0.05); border-radius: 8px; }
+                .gs-history-scroll-area::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); box-shadow: 0 0 6px rgba(201,168,76,0.3); }
+                @keyframes gsFadeIn { from { opacity: 0 } to { opacity: 1 } }
             `}</style>
         </div>
     );

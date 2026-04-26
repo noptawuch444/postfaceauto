@@ -379,7 +379,18 @@ function PublicPost() {
                 position: 'relative',
                 zIndex: 1
             }}>
-                <div className="gs-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'stretch', position: 'relative', zIndex: 1, flex: 1, minHeight: 0 }}>
+                <div className="gs-main-grid" style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(400px, 1fr) minmax(400px, 1fr)',
+                    gap: '16px',
+                    alignItems: 'stretch',
+                    position: 'relative',
+                    zIndex: 1,
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    width: '100%'
+                }}>
+
                     <PostFormSection
                         message={message} setMessage={setMessage}
                         imagePreviews={imagePreviews} handleImageChange={handleImageChange} removeImage={removeImage}

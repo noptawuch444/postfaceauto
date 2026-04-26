@@ -99,7 +99,7 @@ const PostFormSection = ({
     const focusIn = (e) => { e.target.style.borderColor = V.pri; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)'; };
     const focusOut = (e) => { e.target.style.borderColor = V.bdr; e.target.style.boxShadow = 'none'; };
 
-    // scheduleTime format: YYYY-MM-DDTHH:mm
+    // Derived states for separate Date and Time inputs
     const splitTime = useMemo(() => {
         if (!scheduleTime) return { date: '', time: '' };
         const [d, t] = scheduleTime.split('T');
@@ -112,14 +112,9 @@ const PostFormSection = ({
 
     const handleTimeChange = (e) => {
         let val = e.target.value;
-        // Basic mask logic: only allow numbers and ":"
         val = val.replace(/[^0-9:]/g, '');
-        // Limit length
         if (val.length > 5) val = val.slice(0, 5);
-
-        // Auto colon injection for speed
         if (val.length === 2 && !val.includes(':')) val = val + ':';
-
         setScheduleTime(`${splitTime.date || new Date().toISOString().split('T')[0]}T${val}`);
     };
 
@@ -134,14 +129,16 @@ const PostFormSection = ({
     };
 
     return (
-        <div className="gs-post-form-section" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
-            <div style={{ background: V.pri, padding: '14px 20px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="gs-post-form-section" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* Header matches HistorySection layout */}
+            <div style={{ background: V.pri, padding: '14px 20px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#1a1200', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                     <Edit3 size={16} /> <span className="gs-header-title">สร้างรายการใหม่</span>
                 </h3>
                 <button onClick={() => window.location.reload()} style={{ background: 'rgba(0,0,0,0.12)', border: 'none', color: 'rgba(0,0,0,0.5)', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>รีเฟรช</button>
             </div>
 
+            {/* Scrollable body aligned to HistorySection height and style */}
             <div className="gs-card-body-scroll" style={{
                 background: V.bgSec,
                 border: `1px solid ${V.bdr}`,
@@ -154,10 +151,7 @@ const PostFormSection = ({
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 height: '740px',
-                maxHeight: '740px',
-
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(201,168,76,0.35) rgba(201,168,76,0.05)'
+                maxHeight: '740px'
             }}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', position: 'relative', zIndex: 1, minWidth: 0 }}>
                     <div>
@@ -212,7 +206,6 @@ const PostFormSection = ({
 
                     {!postNow && (
                         <div style={{ animation: 'fadeSlideIn 0.3s ease-out', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            {/* Date Picker (Custom Look) */}
                             <div style={{ position: 'relative', height: '54px', cursor: 'pointer' }} onClick={() => document.getElementById('gs-date-input').showPicker()}>
                                 <input id="gs-date-input" type="date" value={splitTime.date} onChange={e => handleDateChange(e.target.value)} style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', pointerEvents: 'none' }} />
                                 <div style={{ height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '10px', boxSizing: 'border-box' }}>
@@ -220,8 +213,6 @@ const PostFormSection = ({
                                     <div style={{ fontSize: '14px', fontWeight: '800', color: V.pri }}>{getThaiDateLabel(splitTime.date)}</div>
                                 </div>
                             </div>
-
-                            {/* Time Input (Typable 24h Text Mask) */}
                             <div style={{ position: 'relative', height: '54px' }}>
                                 <div style={{ height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '6px', boxSizing: 'border-box' }}>
                                     <Clock size={16} style={{ color: V.pri }} />
@@ -282,7 +273,8 @@ const PostFormSection = ({
                 .gs-image-scroller::-webkit-scrollbar { height: 6px; }
                 .gs-image-scroller::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 3px; }
                 .gs-card-body-scroll::-webkit-scrollbar { width: 8px; }
-                .gs-card-body-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); }
+                .gs-card-body-scroll::-webkit-scrollbar-track { background: rgba(201,168,76,0.05); border-radius: 8px; }
+                .gs-card-body-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); box-shadow: 0 0 6px rgba(201,168,76,0.3); }
                 @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
                 @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }

@@ -43,12 +43,13 @@ const { startScheduler } = require('./services/scheduler');
 const axios = require('axios');
 
 const startKeepAlive = () => {
-    const interval = 10 * 60 * 1000; // 10 minutes
+    const interval = 5 * 60 * 1000; // 5 minutes (Render sleeps after ~15 min of inactivity)
+    const publicUrl = process.env.RENDER_EXTERNAL_URL || 'https://goldsyncbotface.onrender.com';
     setInterval(async () => {
         try {
-            // Self-ping to keep Render instance active
-            const url = `http://localhost:${PORT}/api/health`;
-            await axios.get(url);
+            // Ping the public URL (not localhost!) to keep Render instance active
+            const url = `${publicUrl}/api/health`;
+            await axios.get(url, { timeout: 10000 });
             console.log(`⏰ [KEEP-ALIVE] Heartbeat sent to ${url}`);
         } catch (err) {
             console.error('❌ [KEEP-ALIVE] Heartbeat failed:', err.message);

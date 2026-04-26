@@ -3,7 +3,7 @@ import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIc
 import { V } from '../theme';
 
 // Image component with broken-image fallback
-const HistoryImage = ({ src, fbPageId }) => {
+const HistoryImage = ({ src, fbPostId }) => {
     const [broken, setBroken] = useState(false);
 
     if (broken) {
@@ -20,9 +20,9 @@ const HistoryImage = ({ src, fbPageId }) => {
                     รูปภาพไม่สามารถแสดงได้
                     <br /><span style={{ fontSize: '11px', opacity: 0.6 }}>(ไฟล์อาจถูกลบเมื่อเซิร์ฟเวอร์รีสตาร์ท)</span>
                 </p>
-                {fbPageId && (
+                {fbPostId && (
                     <button
-                        onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${fbPageId}`, '_blank'); }}
+                        onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${fbPostId}`, '_blank'); }}
                         style={{
                             background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
                             color: '#1877f2', padding: '6px 14px', borderRadius: '8px',
@@ -143,9 +143,9 @@ const HistorySection = ({
                                                             {(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
                                                         </span>
 
-                                                        {item.status === 'success' && (
+                                                        {item.status === 'success' && item.fb_post_id && (
                                                             <button
-                                                                onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${item.page_id}`, '_blank'); }}
+                                                                onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${item.fb_post_id}`, '_blank'); }}
                                                                 style={{
                                                                     background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)',
                                                                     color: '#1877f2', padding: '4px 8px', borderRadius: '6px',
@@ -199,12 +199,12 @@ const HistorySection = ({
                                                             try {
                                                                 const urls = JSON.parse(item.image_url);
                                                                 return Array.isArray(urls) ? urls.map((url, i) => (
-                                                                    <HistoryImage key={i} src={url} fbPageId={item.page_id} />
+                                                                    <HistoryImage key={i} src={url} fbPostId={item.fb_post_id} />
                                                                 )) : (
-                                                                    <HistoryImage src={item.image_url} fbPageId={item.page_id} />
+                                                                    <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />
                                                                 );
                                                             } catch (e) {
-                                                                return <HistoryImage src={item.image_url} fbPageId={item.page_id} />;
+                                                                return <HistoryImage src={item.image_url} fbPostId={item.fb_post_id} />;
                                                             }
                                                         })()}
                                                     </div>

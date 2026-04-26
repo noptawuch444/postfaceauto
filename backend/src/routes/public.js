@@ -195,14 +195,15 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                const makeText = await makeRes.text();
-                console.log(`✅ Make.com response (${makeRes.status}):`, makeText);
+                const makeData = await makeRes.json();
+                console.log(`✅ Make.com response (${makeRes.status}):`, makeData);
 
                 if (makeRes.status !== 200) {
-                    throw new Error(`Make.com returned status ${makeRes.status}: ${makeText}`);
+                    throw new Error(`Make.com returned status ${makeRes.status}: ${JSON.stringify(makeData)}`);
                 }
 
-                fbResult = { id: 'make_' + Date.now() };
+                fbResult = { id: makeData.fb_post_id || ('make_' + Date.now()) };
+
 
                 // Save to DB as success
                 await db.query(

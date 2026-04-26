@@ -67,13 +67,13 @@ function startScheduler() {
                         body: JSON.stringify(payload),
                     });
 
-                    const text = await res.text();
-                    console.log(`✅ [SCHEDULER] Make.com response (${res.status}):`, text);
-                    fbResult = { id: 'make_' + Date.now() };
+                    const makeData = await res.json();
+                    console.log(`✅ [SCHEDULER] Make.com response (${res.status}):`, makeData);
+                    fbResult = { id: makeData.fb_post_id || ('make_' + Date.now()) };
 
                     await db.query(
                         `UPDATE posts SET status = 'success', fb_post_id = $1 WHERE id = $2`,
-                        [fbResult.id || fbResult.post_id, post.id]
+                        [fbResult.id, post.id]
                     );
                     console.log(`✅ Post ${post.id} published successfully`);
                 } catch (err) {

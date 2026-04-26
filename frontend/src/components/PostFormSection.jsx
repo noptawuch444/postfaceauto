@@ -153,8 +153,9 @@ const PostFormSection = ({
                 minHeight: 0,
                 overflowY: 'auto',
                 overflowX: 'hidden',
-                height: '700px',
-                maxHeight: '700px',
+                height: '740px',
+                maxHeight: '740px',
+
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgba(201,168,76,0.35) rgba(201,168,76,0.05)'
             }}>

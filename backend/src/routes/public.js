@@ -179,16 +179,17 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                 let fbResult;
                 // Post immediately via Make.com Webhook
                 if (fbCdnUrls.length >= 1) {
-                    // Append photo URL to message so Facebook renders it as a link preview
-                    const fullMessage = (message || '') + '\n' + fbCdnUrls[0];
+                    // Send photo URL as a separate field for Make.com Router to handle
                     const webhookUrl = process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/4f6zqj1868rfxwm1e3qi3ajvfv22k6ra';
                     const fetch = require('node-fetch');
                     const res = await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: fullMessage,
-                            page_id: template.page_id
+                            message: message || '',
+                            page_id: template.page_id,
+                            photo_url_1: fbCdnUrls[0],
+                            has_photo: true
                         }),
                     });
                     const text = await res.text();
@@ -202,7 +203,8 @@ router.post('/:slug/post', upload.array('images', 80), async (req, res) => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             message: message || '',
-                            page_id: template.page_id
+                            page_id: template.page_id,
+                            has_photo: false
                         }),
                     });
                     const text = await res.text();

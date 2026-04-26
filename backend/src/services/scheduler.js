@@ -53,8 +53,10 @@ function startScheduler() {
                     }
 
                     const payload = {
-                        message: (post.message || '') + (photoUrls.length > 0 ? '\n' + photoUrls[0] : ''),
-                        page_id: post.page_id
+                        message: post.message || '',
+                        page_id: post.page_id,
+                        photo_url_1: photoUrls.length > 0 ? photoUrls[0] : null,
+                        has_photo: photoUrls.length > 0
                     };
 
                     const res = await fetch(webhookUrl, {

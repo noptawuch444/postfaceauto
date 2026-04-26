@@ -99,6 +99,20 @@ const PostFormSection = ({
     const focusIn = (e) => { e.target.style.borderColor = V.pri; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)'; };
     const focusOut = (e) => { e.target.style.borderColor = V.bdr; e.target.style.boxShadow = 'none'; };
 
+    // Helper to format date in Thai DD/MM/YYYY+543 and 24h น.
+    const formatThaiDate = (val) => {
+        if (!val) return 'คลิกเพื่อเลือกเวลา...';
+        try {
+            const date = new Date(val);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear() + 543;
+            const hours = String(date.getHours()).padStart(2, '0');
+            const mins = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${mins} น.`;
+        } catch (e) { return 'คลิกเพื่อเลือกเวลา...'; }
+    };
+
     return (
         <div className="gs-post-form-section" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
             <div style={{ background: V.pri, padding: '14px 20px', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -176,9 +190,11 @@ const PostFormSection = ({
                     </div>
 
                     {!postNow && (
-                        <div style={{ animation: 'fadeSlideIn 0.3s ease-out', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '14px', padding: '0 16px', gap: '10px' }}>
-                                <Calendar size={18} style={{ color: V.pri, flexShrink: 0 }} />
+                        <div style={{ animation: 'fadeSlideIn 0.3s ease-out' }}>
+                            <div
+                                onClick={() => dateTimeInputRef.current?.showPicker()}
+                                style={{ position: 'relative', width: '100%', height: '54px', cursor: 'pointer' }}
+                            >
                                 <input
                                     type="datetime-local"
                                     ref={dateTimeInputRef}
@@ -187,17 +203,39 @@ const PostFormSection = ({
                                     onChange={e => setScheduleTime(e.target.value)}
                                     required={!postNow}
                                     disabled={postNow}
-                                    className="gs-datetime-input"
-                                    style={{ background: 'none', border: 'none', color: '#fff', fontSize: '16px', fontWeight: '700', fontFamily: 'inherit', height: '54px', flex: 1, outline: 'none', colorScheme: 'dark' }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        opacity: 0,
+                                        zIndex: 1,
+                                        pointerEvents: 'none'
+                                    }}
                                 />
-                                <div style={{ fontSize: '11px', color: V.pri, fontWeight: '700', opacity: 0.8, whiteSpace: 'nowrap' }}>(24 ชม.)</div>
-                            </div>
-                            {scheduleTime && (
-                                <div style={{ marginTop: '2px', fontSize: '12px', color: '#e2c97e', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(201,168,76,0.1)', padding: '6px 14px', borderRadius: '8px', width: 'fit-content' }}>
-                                    <CheckCircle2 size={14} />
-                                    <span>ตรงกับปี <b>พ.ศ. {new Date(scheduleTime).getFullYear() + 543}</b></span>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    background: '#0a0a0a',
+                                    border: `1.5px solid ${V.pri}`,
+                                    borderRadius: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 16px',
+                                    gap: '12px',
+                                    boxSizing: 'border-box',
+                                    zIndex: 2
+                                }}>
+                                    <Calendar size={18} style={{ color: V.pri }} />
+                                    <div style={{ fontSize: '15px', fontWeight: '800', color: V.pri, letterSpacing: '0.2px' }}>
+                                        {formatThaiDate(scheduleTime)}
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     )}
 
@@ -243,10 +281,9 @@ const PostFormSection = ({
                 .gs-image-scroller::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 3px; }
                 .gs-card-body-scroll::-webkit-scrollbar { width: 8px; }
                 .gs-card-body-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); }
-                .gs-datetime-input::-webkit-calendar-picker-indicator { filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg); cursor: pointer; opacity: 0.8; transition: 0.2s; }
-                .gs-datetime-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
                 @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+                @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
             `}</style>
         </div>
     );

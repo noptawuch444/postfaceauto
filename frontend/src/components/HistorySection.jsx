@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles, Share2, X, Copy, Check, Users } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles, Share2, X, Copy, Check, Users, Loader2 } from 'lucide-react';
 import { V } from '../theme';
 
 // ---- localStorage helpers ----
@@ -19,9 +19,29 @@ const saveSharedGroups = (postId, groups) => {
 // ---- Share to Group Modal ----
 const ShareToGroupModal = ({ item, pageId, onClose }) => {
     const [sharedGroups, setSharedGroups] = useState(() => loadSharedGroups(item.id));
+    const [apiGroups, setApiGroups] = useState([]);    // groups from admin settings
+    const [apiLoading, setApiLoading] = useState(true);
     const [groupUrl, setGroupUrl] = useState('');
     const [copied, setCopied] = useState(false);
     const [activeStep, setActiveStep] = useState('list'); // 'list' | 'add'
+
+    // Fetch admin-configured groups from API on mount
+    React.useEffect(() => {
+        fetch('/api/settings/groups/public')
+            .then(r => r.json())
+            .then(data => { if (Array.isArray(data)) setApiGroups(data); })
+            .catch(() => {})
+            .finally(() => setApiLoading(false));
+    }, []);
+
+    // Merge apiGroups into sharedGroups list (add any not yet in list)
+    const allGroups = React.useMemo(() => {
+        const existing = new Set(sharedGroups.map(g => g.gid));
+        const fromApi = apiGroups
+            .filter(g => !existing.has(g.gid))
+            .map(g => ({ gid: g.gid, url: g.url, label: g.name, ticked: false, fromApi: true }));
+        return [...sharedGroups, ...fromApi];
+    }, [sharedGroups, apiGroups]);
 
     const extractGroupInfo = (input) => {
         const cleaned = input.trim();
@@ -114,7 +134,7 @@ const ShareToGroupModal = ({ item, pageId, onClose }) => {
                     <div style={{ padding: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <span style={{ fontSize: '13px', fontWeight: '700', color: V.txt }}>
-                                รายการกลุ่ม ({sharedGroups.length})
+                                {apiLoading ? 'กำลังโหลดกลุ่ม...' : `รายการกลุ่ม (${allGroups.length})`}
                             </span>
                             <button
                                 onClick={() => setActiveStep(activeStep === 'add' ? 'list' : 'add')}
@@ -149,14 +169,19 @@ const ShareToGroupModal = ({ item, pageId, onClose }) => {
                         )}
 
                         {/* Groups List */}
-                        {sharedGroups.length === 0 ? (
+                        {apiLoading ? (
+                            <div style={{ textAlign: 'center', padding: '24px 0', opacity: 0.5 }}>
+                                <Loader2 size={24} style={{ color: '#1877f2', animation: 'spin 1s linear infinite' }} />
+                                <p style={{ fontSize: '12px', color: V.txtS, margin: '8px 0 0' }}>กำลังโหลดกลุ่ม...</p>
+                            </div>
+                        ) : allGroups.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '24px 0', opacity: 0.4 }}>
                                 <Users size={32} style={{ color: V.txtS, marginBottom: '8px' }} />
-                                <p style={{ fontSize: '12px', color: V.txtS, margin: 0 }}>ยังไม่มีกลุ่มในรายการ<br />กด "+ เพิ่มกลุ่ม" เพื่อเริ่มต้น</p>
+                                <p style={{ fontSize: '12px', color: V.txtS, margin: 0 }}>ยังไม่มีกลุ่มในรายการ<br />ให้ Admin เพิ่มกลุ่มที่หน้า Settings หรือกด "+ เพิ่มกลุ่ม"</p>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {sharedGroups.map((g) => (
+                                {allGroups.map((g) => (
                                     <div key={g.gid} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: g.ticked ? 'rgba(94,189,114,0.06)' : V.bgMain, borderRadius: '10px', border: `1px solid ${g.ticked ? 'rgba(94,189,114,0.25)' : V.bdr}`, transition: 'all 0.2s' }}>
                                         {/* Tick Button */}
                                         <button

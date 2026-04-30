@@ -425,6 +425,8 @@ function PublicPost() {
                         expandedItems={expandedItems}
                         toggleExpand={toggleExpand}
                         onDelete={handleDeleteHistory}
+                        shareToGroupEnabled={template?.share_to_group_enabled}
+                        pageId={template?.page_id}
                     />
                 </div>
             </div>

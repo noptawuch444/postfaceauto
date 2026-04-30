@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles, Share2 } from 'lucide-react';
 import { V } from '../theme';
 
 const getValidImageUrl = (rawUrl) => {
@@ -65,7 +65,9 @@ const HistorySection = ({
     expandedItems,
     toggleExpand,
     onDelete,
-    onPreview
+    onPreview,
+    shareToGroupEnabled,
+    pageId
 }) => {
     return (
         <div className="gs-history-section" style={{
@@ -120,6 +122,31 @@ const HistorySection = ({
                                                         <span style={{ fontSize: '11px', color: V.txtS, display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={10} />{(item.schedule_time ? new Date(item.schedule_time) : new Date(item.created_at)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
                                                         {item.status === 'success' && item.fb_post_id && (
                                                             <button onClick={(e) => { e.stopPropagation(); window.open(`https://www.facebook.com/${item.fb_post_id}`, '_blank'); }} style={{ background: 'rgba(24,119,242,0.1)', border: '1px solid rgba(24,119,242,0.2)', color: '#1877f2', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', fontFamily: 'inherit', transition: 'all 0.2s' }}><ExternalLink size={10} /> ดูบน FB</button>
+                                                        )}
+                                                        {shareToGroupEnabled && item.status === 'success' && item.fb_post_id && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    const postUrl = pageId
+                                                                        ? `https://www.facebook.com/${pageId}/posts/${item.fb_post_id.split('_')[1] || item.fb_post_id}`
+                                                                        : `https://www.facebook.com/${item.fb_post_id}`;
+                                                                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank', 'width=600,height=500');
+                                                                }}
+                                                                style={{
+                                                                    background: 'rgba(24,119,242,0.15)',
+                                                                    border: '1px solid rgba(24,119,242,0.35)',
+                                                                    color: '#5b9bd5',
+                                                                    padding: '6px 14px', borderRadius: '8px',
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                                                                    fontSize: '11px', fontWeight: '700', fontFamily: 'inherit',
+                                                                    transition: 'all 0.2s'
+                                                                }}
+                                                                onMouseOver={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.25)'; e.currentTarget.style.color = '#1877f2'; }}
+                                                                onMouseOut={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.15)'; e.currentTarget.style.color = '#5b9bd5'; }}
+                                                                title="แชร์โพสต์นี้เข้ากลุ่ม Facebook"
+                                                            >
+                                                                <Share2 size={10} /> แชร์เข้ากลุ่ม
+                                                            </button>
                                                         )}
                                                     </div>
                                                     <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} style={{ background: 'none', border: 'none', color: 'rgba(224,85,85,0.4)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>

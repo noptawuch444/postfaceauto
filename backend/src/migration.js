@@ -33,6 +33,12 @@ async function runMigrations() {
         await db.query(`CREATE INDEX IF NOT EXISTS idx_posts_fb_id ON posts(fb_post_id)`);
         await db.query(`CREATE INDEX IF NOT EXISTS idx_templates_slug ON templates(slug)`);
         await db.query(`CREATE INDEX IF NOT EXISTS idx_templates_page_id ON templates(page_id)`);
+
+        // [New] Add share_to_group_enabled column if not exists
+        await db.query(`
+            ALTER TABLE templates
+            ADD COLUMN IF NOT EXISTS share_to_group_enabled BOOLEAN DEFAULT false;
+        `);
         await db.query(`CREATE INDEX IF NOT EXISTS idx_pages_page_id ON pages(page_id)`);
         console.log('✅ Performance indexes verified.');
     } catch (err) {

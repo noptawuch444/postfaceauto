@@ -42,7 +42,7 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 10
 router.get('/:slug/info', async (req, res) => {
     try {
         const result = await db.query(
-            `SELECT t.template_name, t.page_id, t.auto_reply_enabled, t.share_to_group_enabled, pg.page_name, pg.page_picture 
+            `SELECT t.template_name, t.page_id, t.auto_reply_enabled, pg.page_name, pg.page_picture 
              FROM templates t
              JOIN pages pg ON t.page_id = pg.page_id
              WHERE t.slug = $1`,
@@ -58,8 +58,7 @@ router.get('/:slug/info', async (req, res) => {
             page_name: result.rows[0].page_name,
             page_id: result.rows[0].page_id,
             page_picture: result.rows[0].page_picture,
-            auto_reply_enabled: result.rows[0].auto_reply_enabled,
-            share_to_group_enabled: result.rows[0].share_to_group_enabled
+            auto_reply_enabled: result.rows[0].auto_reply_enabled
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -71,7 +70,7 @@ router.post('/:slug/verify', async (req, res) => {
     try {
         const { password } = req.body;
         const result = await db.query(
-            `SELECT t.id, t.template_name, t.password, t.expire_date, t.slug, t.page_id, t.auto_reply_enabled, t.share_to_group_enabled, pg.page_name, pg.page_picture 
+            `SELECT t.id, t.template_name, t.password, t.expire_date, t.slug, t.page_id, t.auto_reply_enabled, pg.page_name, pg.page_picture 
              FROM templates t
              JOIN pages pg ON t.page_id = pg.page_id
              WHERE t.slug = $1`,
@@ -104,8 +103,7 @@ router.post('/:slug/verify', async (req, res) => {
                 slug: template.slug,
                 expire_date: template.expire_date,
                 page_picture: template.page_picture,
-                auto_reply_enabled: template.auto_reply_enabled,
-                share_to_group_enabled: template.share_to_group_enabled
+                auto_reply_enabled: template.auto_reply_enabled
             }
         });
     } catch (error) {

@@ -22,7 +22,7 @@ function TemplatesManage() {
         slug: '',
         auto_reply_enabled: false,
         auto_reply_text: '',
-        share_to_group_enabled: false
+        auto_reply_text: ''
     });
 
     const fetchData = async () => {
@@ -92,7 +92,7 @@ function TemplatesManage() {
             if (res.ok) {
                 setShowModal(false);
                 setEditingTemplate(null);
-                setFormData({ page_id: '', template_name: '', password: '', expire_date: '', slug: '', auto_reply_enabled: false, auto_reply_text: '', share_to_group_enabled: false });
+                setFormData({ page_id: '', template_name: '', password: '', expire_date: '', slug: '', auto_reply_enabled: false, auto_reply_text: '' });
                 fetchData();
             } else {
                 alert(data.error);
@@ -143,7 +143,7 @@ function TemplatesManage() {
                     </div>
                 </div>
                 <div className="adm-header-actions">
-                    <button className="adm-btn-primary" onClick={() => { setEditingTemplate(null); setFormData({ page_id: '', template_name: '', password: '', expire_date: '', slug: '', auto_reply_enabled: false, auto_reply_text: '', share_to_group_enabled: false }); setShowModal(true); }}>
+                    <button className="adm-btn-primary" onClick={() => { setEditingTemplate(null); setFormData({ page_id: '', template_name: '', password: '', expire_date: '', slug: '', auto_reply_enabled: false, auto_reply_text: '' }); setShowModal(true); }}>
                         <Plus size={18} /> สร้างเทมเพลตใหม่
                     </button>
                 </div>
@@ -197,9 +197,7 @@ function TemplatesManage() {
                                 <div className="adm-meta-item" style={{ color: tpl.auto_reply_enabled ? V.ok : V.priD }}>
                                     <AlertCircle size={14} /> ระบบตอบกลับอัตโนมัติ: {tpl.auto_reply_enabled ? 'เปิดใช้งาน' : 'ปิดอยู่'}
                                 </div>
-                                <div className="adm-meta-item" style={{ color: tpl.share_to_group_enabled ? '#1877f2' : V.priD }}>
-                                    <ExternalLink size={14} /> แชร์เข้ากลุ่ม: {tpl.share_to_group_enabled ? 'เปิดใช้งาน' : 'ปิดอยู่'}
-                                </div>
+
                             </div>
                         </div>
 
@@ -330,34 +328,7 @@ function TemplatesManage() {
                                     )}
                                 </div>
 
-                                {/* Share to Group Toggle */}
-                                <div className="adm-fg" style={{ background: V.bgL, padding: '16px', borderRadius: '12px', border: `1px solid rgba(24,119,242,0.15)` }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                <ExternalLink size={14} color={formData.share_to_group_enabled ? '#1877f2' : V.pri} />
-                                                ปุ่มแชร์โพสต์เข้ากลุ่ม
-                                            </span>
-                                            <small style={{ opacity: 0.6, fontSize: '12px' }}>แสดงปุ่มแชร์บนโพสต์ที่ส่งสำเร็จแล้วในหน้า Public Link</small>
-                                        </div>
-                                        <label className="gs-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.share_to_group_enabled}
-                                                onChange={e => setFormData({ ...formData, share_to_group_enabled: e.target.checked })}
-                                            />
-                                            <span className="gs-slider-blue"></span>
-                                        </label>
-                                    </div>
 
-                                    {formData.share_to_group_enabled && (
-                                        <div className="fade-in" style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(24,119,242,0.06)', borderRadius: '8px', border: '1px solid rgba(24,119,242,0.12)' }}>
-                                            <p style={{ fontSize: '12px', color: '#90b8ff', margin: 0, lineHeight: '1.6' }}>
-                                                🔗 ผู้ใช้จะเห็นปุ่ม <strong style={{ color: '#1877f2' }}>แชร์เข้ากลุ่ม</strong> บนโพสต์ที่ส่งสำเร็จแล้ว โดย Facebook จะเปิด dialog ให้เลือกปลายทาง (Timeline / กลุ่ม / เพจ)
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
 
                             <div className="adm-form-footer">

@@ -1,6 +1,163 @@
 import React, { useState } from 'react';
-import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles, Share2 } from 'lucide-react';
+import { History, MessageSquare, Calendar, Clock, CheckCircle2, Image as ImageIcon, Film, Trash2, ExternalLink, ImageOff, Sparkles, Share2, X, Copy, Check, Users } from 'lucide-react';
 import { V } from '../theme';
+
+// ---- Share to Group Modal ----
+const ShareToGroupModal = ({ item, pageId, onClose }) => {
+    const [groupUrl, setGroupUrl] = useState('');
+    const [copied, setCopied] = useState(false);
+    const [step, setStep] = useState(1); // 1=enter group, 2=copy & open
+
+    const extractGroupId = (input) => {
+        const cleaned = input.trim();
+        // Match group URL patterns
+        const m = cleaned.match(/facebook\.com\/groups\/([^/?#]+)/);
+        if (m) return m[1];
+        // Pure numeric ID
+        if (/^\d+$/.test(cleaned)) return cleaned;
+        // Already a path slug
+        if (/^[\w.]+$/.test(cleaned)) return cleaned;
+        return null;
+    };
+
+    const handleNext = () => {
+        if (!groupUrl.trim()) return;
+        setStep(2);
+    };
+
+    const handleCopyMessage = () => {
+        navigator.clipboard.writeText(item.message || '').then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2500);
+        });
+    };
+
+    const handleOpenGroup = () => {
+        const gid = extractGroupId(groupUrl);
+        if (!gid) return;
+        window.open(`https://www.facebook.com/groups/${gid}`, '_blank');
+    };
+
+    const overlayStyle = {
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px'
+    };
+    const cardStyle = {
+        width: '100%', maxWidth: '460px',
+        background: V.bgSec, borderRadius: '18px',
+        border: `1px solid rgba(24,119,242,0.25)`,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.7)',
+        overflow: 'hidden', fontFamily: '"Prompt", sans-serif'
+    };
+
+    return (
+        <div style={overlayStyle} onClick={onClose}>
+            <div style={cardStyle} onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div style={{ background: 'linear-gradient(135deg, #1877f2, #0d5cb8)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Users size={18} color="#fff" />
+                        <span style={{ fontWeight: '800', fontSize: '15px', color: '#fff' }}>แชร์เข้ากลุ่ม Facebook</span>
+                    </div>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#fff', display: 'flex' }}>
+                        <X size={16} />
+                    </button>
+                </div>
+
+                <div style={{ padding: '20px' }}>
+                    {/* Steps indicator */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                        {[1, 2].map(s => (
+                            <React.Fragment key={s}>
+                                <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800', background: step >= s ? '#1877f2' : 'rgba(255,255,255,0.08)', color: step >= s ? '#fff' : V.txtS, border: `1px solid ${step >= s ? '#1877f2' : V.bdr}`, transition: 'all 0.3s' }}>{s}</div>
+                                {s < 2 && <div style={{ flex: 1, height: '2px', background: step > s ? '#1877f2' : V.bdr, borderRadius: '2px', transition: 'all 0.3s' }} />}
+                            </React.Fragment>
+                        ))}
+                    </div>
+
+                    {step === 1 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: V.txtS, marginBottom: '8px' }}>
+                                    🔗 ใส่ URL หรือ Group ID ของกลุ่ม Facebook
+                                </label>
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    placeholder="https://www.facebook.com/groups/... หรือ Group ID"
+                                    value={groupUrl}
+                                    onChange={e => setGroupUrl(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleNext()}
+                                    style={{
+                                        width: '100%', padding: '12px 14px', boxSizing: 'border-box',
+                                        background: V.bgMain, border: `1.5px solid rgba(24,119,242,0.3)`,
+                                        borderRadius: '10px', color: '#fff', fontSize: '13px',
+                                        fontFamily: 'inherit', outline: 'none',
+                                        transition: 'border-color 0.2s'
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = '#1877f2'}
+                                    onBlur={e => e.target.style.borderColor = 'rgba(24,119,242,0.3)'}
+                                />
+                                <p style={{ fontSize: '11px', color: V.txtS, margin: '6px 0 0', opacity: 0.6 }}>
+                                    วางลิงก์กลุ่ม Facebook เช่น https://www.facebook.com/groups/12345678
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleNext}
+                                disabled={!groupUrl.trim()}
+                                style={{ padding: '12px', background: groupUrl.trim() ? '#1877f2' : 'rgba(24,119,242,0.2)', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '800', fontSize: '14px', cursor: groupUrl.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.2s' }}
+                            >
+                                ถัดไป →
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div style={{ background: V.bgMain, borderRadius: '10px', padding: '12px', border: `1px solid ${V.bdr}` }}>
+                                <div style={{ fontSize: '11px', color: V.txtS, marginBottom: '6px', fontWeight: '700' }}>📝 ข้อความโพสต์:</div>
+                                <p style={{ fontSize: '13px', color: V.txt, margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.6', maxHeight: '100px', overflowY: 'auto' }}>
+                                    {item.message || '(ไม่มีข้อความ)'}
+                                </p>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <p style={{ fontSize: '13px', color: V.txtS, margin: 0, lineHeight: '1.6' }}>
+                                    <strong style={{ color: '#e2c97e' }}>วิธีการ:</strong> คัดลอกข้อความ → เปิดกลุ่ม → วางและโพสต์
+                                </p>
+
+                                <button
+                                    onClick={handleCopyMessage}
+                                    style={{ padding: '12px', background: copied ? 'rgba(94,189,114,0.15)' : 'rgba(201,168,76,0.1)', border: `1px solid ${copied ? 'rgba(94,189,114,0.3)' : V.bdr}`, borderRadius: '10px', color: copied ? '#5ebd72' : V.pri, fontWeight: '800', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
+                                >
+                                    {copied ? <><Check size={15} /> คัดลอกแล้ว!</> : <><Copy size={15} /> คัดลอกข้อความโพสต์</>}
+                                </button>
+
+                                <button
+                                    onClick={handleOpenGroup}
+                                    style={{ padding: '12px', background: '#1877f2', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '800', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
+                                    onMouseOver={e => e.currentTarget.style.background = '#0d5cb8'}
+                                    onMouseOut={e => e.currentTarget.style.background = '#1877f2'}
+                                >
+                                    <Users size={15} /> เปิดกลุ่ม Facebook
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setStep(1)}
+                                style={{ padding: '8px', background: 'none', border: `1px solid ${V.bdr}`, borderRadius: '8px', color: V.txtS, fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' }}
+                            >
+                                ← เปลี่ยนกลุ่ม
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const getValidImageUrl = (rawUrl) => {
     if (!rawUrl) return null;
@@ -69,6 +226,7 @@ const HistorySection = ({
     shareToGroupEnabled,
     pageId
 }) => {
+    const [shareModal, setShareModal] = useState(null); // { item }
     return (
         <div className="gs-history-section" style={{
             display: 'flex', flexDirection: 'column',
@@ -125,22 +283,8 @@ const HistorySection = ({
                                                         )}
                                                         {shareToGroupEnabled && item.status === 'success' && item.fb_post_id && (
                                                             <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    const postUrl = pageId
-                                                                        ? `https://www.facebook.com/${pageId}/posts/${item.fb_post_id.split('_')[1] || item.fb_post_id}`
-                                                                        : `https://www.facebook.com/${item.fb_post_id}`;
-                                                                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank', 'width=600,height=500');
-                                                                }}
-                                                                style={{
-                                                                    background: 'rgba(24,119,242,0.15)',
-                                                                    border: '1px solid rgba(24,119,242,0.35)',
-                                                                    color: '#5b9bd5',
-                                                                    padding: '6px 14px', borderRadius: '8px',
-                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                                                                    fontSize: '11px', fontWeight: '700', fontFamily: 'inherit',
-                                                                    transition: 'all 0.2s'
-                                                                }}
+                                                                onClick={(e) => { e.stopPropagation(); setShareModal({ item }); }}
+                                                                style={{ background: 'rgba(24,119,242,0.15)', border: '1px solid rgba(24,119,242,0.35)', color: '#5b9bd5', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', fontFamily: 'inherit', transition: 'all 0.2s' }}
                                                                 onMouseOver={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.25)'; e.currentTarget.style.color = '#1877f2'; }}
                                                                 onMouseOut={e => { e.currentTarget.style.background = 'rgba(24,119,242,0.15)'; e.currentTarget.style.color = '#5b9bd5'; }}
                                                                 title="แชร์โพสต์นี้เข้ากลุ่ม Facebook"
@@ -181,6 +325,15 @@ const HistorySection = ({
                 .gs-history-scroll-area::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c9a84c, #8a6d2b); border-radius: 8px; border: 2px solid rgba(20,17,10,0.6); box-shadow: 0 0 6px rgba(201,168,76,0.3); }
                 @keyframes gsFadeIn { from { opacity: 0 } to { opacity: 1 } }
             `}</style>
+
+            {/* Share to Group Modal */}
+            {shareModal && (
+                <ShareToGroupModal
+                    item={shareModal.item}
+                    pageId={pageId}
+                    onClose={() => setShareModal(null)}
+                />
+            )}
         </div>
     );
 };

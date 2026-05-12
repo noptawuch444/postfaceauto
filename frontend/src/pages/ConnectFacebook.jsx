@@ -1,11 +1,15 @@
-import { useState } from 'react';
-import { Facebook, ShieldCheck, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import GoldenSnow from '../components/GoldenSnow';
+import React, { useState } from 'react';
+import { Facebook, Link as LinkIcon, AlertCircle, Loader2, Key, Hash } from 'lucide-react';
 import { V } from '../theme';
+import GoldenSnow from '../components/GoldenSnow';
 
 function ConnectFacebook() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [showManual, setShowManual] = useState(false);
+    const [pageId, setPageId] = useState('');
+    const [pageToken, setPageToken] = useState('');
     const token = localStorage.getItem('token');
 
     const handleConnect = async () => {
@@ -30,6 +34,72 @@ function ConnectFacebook() {
             }
         } catch (err) {
             setError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            setLoading(false);
+        }
+    };
+
+    const handleManualConnect = async (e) => {
+        e.preventDefault();
+        if (!token) return;
+        setLoading(true);
+        setError('');
+        setSuccess('');
+        try {
+            const res = await fetch('/api/facebook/manual-connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ pageId, pageAccessToken: pageToken })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setSuccess('เชื่อมต่อเพจสำเร็จแล้ว!');
+                setPageId('');
+                setPageToken('');
+                setTimeout(() => {
+                    window.location.href = '/admin/pages';
+                }, 1500);
+            } else {
+                setError(data.error || 'ไม่สามารถเชื่อมต่อเพจได้ ตรวจสอบ Token อีกครั้ง');
+            }
+        } catch (err) {
+            setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleManualConnect = async (e) => {
+        e.preventDefault();
+        if (!token) return;
+        setLoading(true);
+        setError('');
+        setSuccess('');
+        try {
+            const res = await fetch('/api/facebook/manual-connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ pageId, pageAccessToken: pageToken })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setSuccess('เชื่อมต่อเพจสำเร็จแล้ว!');
+                setPageId('');
+                setPageToken('');
+                setTimeout(() => {
+                    window.location.href = '/admin/pages';
+                }, 1500);
+            } else {
+                setError(data.error || 'ไม่สามารถเชื่อมต่อเพจได้ ตรวจสอบ Token อีกครั้ง');
+            }
+        } catch (err) {
+            setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        } finally {
             setLoading(false);
         }
     };
@@ -142,40 +212,118 @@ function ConnectFacebook() {
                     </div>
                 )}
 
-                <button
-                    onClick={handleConnect}
-                    className="gs-connect-btn"
-                    style={{
-                        width: '100%',
-                        height: '58px',
-                        fontSize: '16px',
-                        fontWeight: '800',
-                        background: `linear-gradient(135deg, ${V.pri}, ${V.priD})`,
-                        color: V.bgMain,
-                        border: 'none',
-                        borderRadius: '14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '12px',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: `0 8px 25px ${V.pri}40`
-                    }}
-                    disabled={loading}
-                    onMouseOver={e => {
-                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.01)';
-                        e.currentTarget.style.boxShadow = `0 12px 35px ${V.pri}60`;
-                    }}
-                    onMouseOut={e => {
-                        e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = `0 8px 25px ${V.pri}40`;
-                    }}
-                >
-                    {loading ? <Loader2 className="animate-spin" size={24} /> : (
-                        <> เริ่มต้นเชื่อมต่อ <ArrowRight size={20} /> </>
-                    )}
-                </button>
+                {!showManual ? (
+                    <>
+                        <button
+                            onClick={handleConnect}
+                            className="gs-connect-btn"
+                            style={{
+                                width: '100%',
+                                height: '58px',
+                                fontSize: '16px',
+                                fontWeight: '800',
+                                background: `linear-gradient(135deg, ${V.pri}, ${V.priD})`,
+                                color: V.bgMain,
+                                border: 'none',
+                                borderRadius: '14px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '12px',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                boxShadow: `0 8px 25px ${V.pri}40`
+                            }}
+                            disabled={loading}
+                            onMouseOver={e => {
+                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.01)';
+                                e.currentTarget.style.boxShadow = `0 12px 35px ${V.pri}60`;
+                            }}
+                            onMouseOut={e => {
+                                e.currentTarget.style.transform = 'none';
+                                e.currentTarget.style.boxShadow = `0 8px 25px ${V.pri}40`;
+                            }}
+                        >
+                            {loading ? <Loader2 className="animate-spin" size={24} /> : (
+                                <> เริ่มต้นเชื่อมต่อ <LinkIcon size={20} /> </>
+                            )}
+                        </button>
+                        
+                        <div style={{ marginTop: '24px' }}>
+                            <button 
+                                onClick={() => setShowManual(true)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: V.pri,
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                พบปัญหาการเชื่อมต่อ? ใช้การเชื่อมต่อแบบกรอกรหัส (Manual)
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <form onSubmit={handleManualConnect} style={{ textAlign: 'left' }}>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '14px', color: V.txtM, marginBottom: '8px' }}>
+                                <Hash size={14} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }}/> Page ID
+                            </label>
+                            <input 
+                                type="text" 
+                                value={pageId}
+                                onChange={(e) => setPageId(e.target.value)}
+                                placeholder="เช่น 1054326789..."
+                                required
+                                style={{
+                                    width: '100%', padding: '14px 16px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${V.bdr}`,
+                                    borderRadius: '12px', color: V.txt, fontSize: '15px', outline: 'none'
+                                }}
+                            />
+                        </div>
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ display: 'block', fontSize: '14px', color: V.txtM, marginBottom: '8px' }}>
+                                <Key size={14} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }}/> Page Access Token
+                            </label>
+                            <input 
+                                type="text" 
+                                value={pageToken}
+                                onChange={(e) => setPageToken(e.target.value)}
+                                placeholder="EAA..."
+                                required
+                                style={{
+                                    width: '100%', padding: '14px 16px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${V.bdr}`,
+                                    borderRadius: '12px', color: V.txt, fontSize: '15px', outline: 'none'
+                                }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button 
+                                type="button"
+                                onClick={() => setShowManual(false)}
+                                style={{
+                                    flex: '1', padding: '14px', background: 'transparent', color: V.txt, border: `1px solid ${V.bdr}`,
+                                    borderRadius: '12px', fontSize: '15px', cursor: 'pointer'
+                                }}
+                            >
+                                ยกเลิก
+                            </button>
+                            <button 
+                                type="submit"
+                                disabled={loading}
+                                style={{
+                                    flex: '1', padding: '14px', background: V.pri, color: '#000', border: 'none',
+                                    borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                                }}
+                            >
+                                {loading ? <Loader2 size={18} className="animate-spin" /> : 'บันทึกเพจ'}
+                            </button>
+                        </div>
+                    </form>
+                )}
 
                 <div style={{
                     marginTop: '36px',

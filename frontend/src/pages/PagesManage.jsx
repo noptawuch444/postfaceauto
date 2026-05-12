@@ -3,7 +3,7 @@ import { Trash2, Plus, RefreshCw, AlertCircle, Info, Database, Globe, Calendar, 
 import { useOutletContext } from 'react-router-dom';
 import { V } from '../theme';
 
-function PagesManage() {
+function PagesManage({ user }) {
     const { onLogout } = useOutletContext();
     const [pages, setPages] = useState([]);
     const [loading, setLoading] = useState(true);

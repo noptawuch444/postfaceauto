@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Key, Hash, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { V } from '../theme';
 
 function ConnectFacebook() {

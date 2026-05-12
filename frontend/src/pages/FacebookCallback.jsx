@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
+import GoldenSnow from '../components/GoldenSnow';
 
 function FacebookCallback() {
     const [status, setStatus] = useState('loading');
@@ -49,8 +50,9 @@ function FacebookCallback() {
     }, [location, navigate]);
 
     return (
-        <div className="public-layout">
-            <div className="gs-card" style={{ width: '100%', maxWidth: '400px', textAlign: 'center', padding: '48px' }}>
+        <div className="public-layout" style={{ position: 'relative', overflow: 'hidden' }}>
+            <GoldenSnow />
+            <div className="gs-card" style={{ width: '100%', maxWidth: '400px', textAlign: 'center', padding: '48px', position: 'relative', zIndex: 10 }}>
                 {status === 'loading' && (
                     <>
                         <Loader2 size={48} className="animate-spin" style={{ color: 'var(--gs-blue)', margin: '0 auto 24px' }} />

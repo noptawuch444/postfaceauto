@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Key, Hash, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { V } from '../theme';
+import GoldenSnow from '../components/GoldenSnow';
 
 function ConnectFacebook() {
     const [loading, setLoading] = useState(false);
@@ -85,8 +86,11 @@ function ConnectFacebook() {
             background: V.bgMain,
             padding: '20px',
             fontFamily: '"Prompt", sans-serif',
-            color: V.txt
+            color: V.txt,
+            position: 'relative',
+            overflow: 'hidden'
         }}>
+            <GoldenSnow />
             <div style={{
                 background: V.bgSec,
                 padding: '40px',
@@ -95,6 +99,8 @@ function ConnectFacebook() {
                 width: '100%',
                 maxWidth: '480px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                position: 'relative',
+                zIndex: 10
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                     <h2 style={{ fontSize: '24px', fontWeight: '700', color: V.pri, marginBottom: '8px' }}>

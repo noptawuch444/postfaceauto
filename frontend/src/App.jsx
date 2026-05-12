@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react';
 
 // Lazy Load Pages
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
-const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const PagesManage = lazy(() => import('./pages/PagesManage'));
 const TemplatesManage = lazy(() => import('./pages/TemplatesManage'));

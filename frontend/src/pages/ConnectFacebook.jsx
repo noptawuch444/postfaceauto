@@ -6,12 +6,21 @@ import { V } from '../theme';
 function ConnectFacebook() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const token = localStorage.getItem('token');
 
     const handleConnect = async () => {
+        if (!token) {
+            setError('กรุณาเข้าสู่ระบบก่อนเชื่อมต่อเพจ');
+            window.location.href = '/login';
+            return;
+        }
+
         setLoading(true);
         setError('');
         try {
-            const res = await fetch('/api/facebook/auth-url');
+            const res = await fetch('/api/facebook/auth-url', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const data = await res.json();
             if (data.url) {
                 window.location.href = data.url;

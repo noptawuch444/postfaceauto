@@ -1,21 +1,28 @@
 import { useState } from 'react';
-import { Lock, Mail, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Loader2, UserPlus, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import GoldenSnow from '../components/GoldenSnow';
 import { V } from '../theme';
 
-function AdminLogin({ onLogin }) {
+function Register({ onLogin }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            setError('รหัสผ่านไม่ตรงกัน');
+            return;
+        }
+        
         setLoading(true);
         setError('');
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -24,10 +31,10 @@ function AdminLogin({ onLogin }) {
             if (res.ok) {
                 onLogin(data.token);
             } else {
-                setError(data.error || 'Login failed');
+                setError(data.error || 'Registration failed');
             }
         } catch (err) {
-            setError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ฐานข้อมูลได้');
+            setError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
         } finally {
             setLoading(false);
         }
@@ -71,8 +78,8 @@ function AdminLogin({ onLogin }) {
                     }}>
                         <img src="/GOLDSYNC.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
-                    <h2 className="adm-title" style={{ fontSize: '26px', fontWeight: '800', color: V.priL, letterSpacing: '-0.5px' }}>GoldSync Admin</h2>
-                    <p style={{ color: V.txtM, fontSize: '13px', marginTop: '6px' }}>ระบบจัดการหลังบ้านระดับพรีเมียม</p>
+                    <h2 className="adm-title" style={{ fontSize: '26px', fontWeight: '800', color: V.priL, letterSpacing: '-0.5px' }}>สมัครสมาชิกใหม่</h2>
+                    <p style={{ color: V.txtM, fontSize: '13px', marginTop: '6px' }}>เริ่มต้นใช้งานระบบ GoldSync AutoBot</p>
                 </div>
 
                 <div className="adm-content" style={{ padding: '30px' }}>
@@ -85,11 +92,11 @@ function AdminLogin({ onLogin }) {
 
                     <form onSubmit={handleSubmit} className="adm-form">
                         <div className="adm-fg">
-                            <label><Mail size={14} /> อีเมลผู้ใช้งาน</label>
+                            <label><Mail size={14} /> อีเมลใช้งาน</label>
                             <input
                                 type="email"
                                 className="adm-input"
-                                placeholder="admin@goldsync.com"
+                                placeholder="example@email.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -97,7 +104,7 @@ function AdminLogin({ onLogin }) {
                         </div>
 
                         <div className="adm-fg">
-                            <label><Lock size={14} /> รหัสผ่านความปลอดภัย</label>
+                            <label><Lock size={14} /> รหัสผ่าน</label>
                             <input
                                 type="password"
                                 className="adm-input"
@@ -108,19 +115,34 @@ function AdminLogin({ onLogin }) {
                             />
                         </div>
 
+                        <div className="adm-fg">
+                            <label><Lock size={14} /> ยืนยันรหัสผ่านอีกครั้ง</label>
+                            <input
+                                type="password"
+                                className="adm-input"
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+
                         <button
                             type="submit"
                             className="adm-btn-primary"
                             style={{ width: '100%', justifyContent: 'center', height: '52px', marginTop: '10px' }}
                             disabled={loading}
                         >
-                            {loading ? <Loader2 size={20} className="adm-spin" /> : 'ยืนยันเพื่อเข้าสู่ระบบ'}
+                            {loading ? <Loader2 size={20} className="adm-spin" /> : (
+                                <><UserPlus size={20} style={{ marginRight: '8px' }} /> สร้างบัญชีผู้ใช้</>
+                            )}
                         </button>
                     </form>
+
                     <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                        <p style={{ color: V.txtM, fontSize: '14px' }}>
-                            ยังไม่มีบัญชี? <Link to="/register" style={{ color: V.pri, textDecoration: 'none', fontWeight: '700' }}>สร้างบัญชีใหม่</Link>
-                        </p>
+                        <Link to="/login" style={{ color: V.pri, fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <ArrowLeft size={16} /> กลับไปหน้าเข้าสู่ระบบ
+                        </Link>
                     </div>
                 </div>
 
@@ -169,4 +191,4 @@ function AdminLogin({ onLogin }) {
     );
 }
 
-export default AdminLogin;
+export default Register;

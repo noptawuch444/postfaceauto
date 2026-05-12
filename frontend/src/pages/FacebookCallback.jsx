@@ -23,7 +23,10 @@ function FacebookCallback() {
 
         authStartedRef.current = true;
 
-        fetch(`/api/facebook/callback?code=${code}`)
+        const token = localStorage.getItem('token');
+        fetch(`/api/facebook/callback?code=${code}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {

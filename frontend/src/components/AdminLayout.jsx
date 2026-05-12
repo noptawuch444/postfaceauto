@@ -3,9 +3,9 @@ import AdminTopNav from './AdminTopNav';
 import AdminTabs from './AdminTabs';
 import { V } from '../theme';
 
-function AdminLayout({ isAuthenticated, onLogout }) {
+function AdminLayout({ isAuthenticated, onLogout, user }) {
     if (!isAuthenticated) {
-        return <Navigate to="/admin/login" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     return (
@@ -18,7 +18,7 @@ function AdminLayout({ isAuthenticated, onLogout }) {
             flexDirection: 'column',
             overflowX: 'hidden'
         }}>
-            <AdminTopNav onLogout={onLogout} />
+            <AdminTopNav onLogout={onLogout} user={user} />
 
             <div style={{
                 flex: 1,
@@ -29,7 +29,7 @@ function AdminLayout({ isAuthenticated, onLogout }) {
                 margin: '0 auto',
                 width: '100%'
             }}>
-                <AdminTabs />
+                <AdminTabs user={user} />
 
                 <main className="adm-main" style={{
                     flex: 1,

@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const facebook = require('../services/facebook');
+const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 
 // GET /api/facebook/auth-url - Generate Facebook OAuth URL
@@ -12,7 +13,7 @@ router.get('/auth-url', (req, res) => {
 });
 
 // GET /api/facebook/callback - Handle OAuth callback
-router.get('/callback', async (req, res) => {
+router.get('/callback', authMiddleware, async (req, res) => {
     try {
         const { code } = req.query;
         if (!code) return res.status(400).json({ error: 'Missing authorization code' });
@@ -30,14 +31,15 @@ router.get('/callback', async (req, res) => {
         for (const page of pages) {
             const pictureUrl = page.picture?.data?.url || null;
             await db.query(
-                `INSERT INTO pages (page_id, page_name, page_access_token, page_picture)
-                 VALUES ($1, $2, $3, $4)
+                `INSERT INTO pages (page_id, page_name, page_access_token, page_picture, user_id)
+                 VALUES ($1, $2, $3, $4, $5)
                  ON CONFLICT (page_id) DO UPDATE SET
                     page_name = EXCLUDED.page_name,
                     page_access_token = EXCLUDED.page_access_token,
                     page_picture = EXCLUDED.page_picture,
+                    user_id = EXCLUDED.user_id,
                     updated_at = NOW()`,
-                [page.id, page.name, page.access_token, pictureUrl]
+                [page.id, page.name, page.access_token, pictureUrl, req.user.id]
             );
             // Automatically subscribe this page to the webhook
             try {
@@ -56,7 +58,7 @@ router.get('/callback', async (req, res) => {
 });
 
 // POST /api/facebook/manual-connect - Manual connection with Page ID + Token
-router.post('/manual-connect', async (req, res) => {
+router.post('/manual-connect', authMiddleware, async (req, res) => {
     try {
         const { pageId, pageAccessToken } = req.body;
         if (!pageId || !pageAccessToken) {
@@ -68,14 +70,15 @@ router.post('/manual-connect', async (req, res) => {
 
         const pictureUrl = pageInfo.picture?.data?.url || null;
         await db.query(
-            `INSERT INTO pages (page_id, page_name, page_access_token, page_picture)
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO pages (page_id, page_name, page_access_token, page_picture, user_id)
+             VALUES ($1, $2, $3, $4, $5)
              ON CONFLICT (page_id) DO UPDATE SET
                 page_name = EXCLUDED.page_name,
                 page_access_token = EXCLUDED.page_access_token,
                 page_picture = EXCLUDED.page_picture,
+                user_id = EXCLUDED.user_id,
                 updated_at = NOW()`,
-            [pageInfo.id || pageId, pageInfo.name || 'Facebook Page', pageAccessToken, pictureUrl]
+            [pageInfo.id || pageId, pageInfo.name || 'Facebook Page', pageAccessToken, pictureUrl, req.user.id]
         );
 
         res.json({

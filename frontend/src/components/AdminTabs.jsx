@@ -3,16 +3,18 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Layers, History, Settings, ExternalLink } from 'lucide-react';
 import { V } from '../theme';
 
-const AdminTabs = () => {
+const AdminTabs = ({ user }) => {
     const location = useLocation();
 
+    const isAdmin = user?.role === 'admin';
+
     const menuItems = [
-        { name: 'แดชบอร์ด', path: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'จัดการเพจ', path: '/admin/pages', icon: BookOpen },
-        { name: 'จัดการเทมเพลต', path: '/admin/templates', icon: Layers },
-        { name: 'ประวัติการโพสต์', path: '/admin/posts', icon: History },
-        { name: 'ตั้งค่าระบบ', path: '/admin/settings', icon: Settings },
-    ];
+        { name: 'แดชบอร์ด', path: '/admin/dashboard', icon: LayoutDashboard, show: isAdmin },
+        { name: 'จัดการเพจ', path: '/admin/pages', icon: BookOpen, show: true },
+        { name: 'จัดการเทมเพลต', path: '/admin/templates', icon: Layers, show: isAdmin },
+        { name: 'ประวัติการโพสต์', path: '/admin/posts', icon: History, show: isAdmin },
+        { name: 'ตั้งค่าระบบ', path: '/admin/settings', icon: Settings, show: isAdmin },
+    ].filter(item => item.show);
 
     return (
         <div style={{

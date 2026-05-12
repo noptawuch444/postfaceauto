@@ -195,7 +195,7 @@ function PagesManage() {
                                             <h3 style={{ fontSize: '18px', fontWeight: '800', color: V.priL, marginBottom: '4px' }}>
                                                 {page.page_name}
                                             </h3>
-                                            <div style={{
+                                             <div style={{
                                                 fontSize: '11px',
                                                 color: V.txtM,
                                                 background: V.bgDark,
@@ -206,6 +206,20 @@ function PagesManage() {
                                             }}>
                                                 ID: {page.page_id}
                                             </div>
+                                            {page.owner_email && (
+                                                <div style={{
+                                                    fontSize: '10px',
+                                                    color: V.pri,
+                                                    background: 'rgba(201, 168, 76, 0.1)',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    marginTop: '6px',
+                                                    display: 'inline-block',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    OWNER: {page.owner_email}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Progressive Expiry Bar */}

@@ -39,6 +39,9 @@ async function runMigrations() {
             ALTER TABLE templates
             ADD COLUMN IF NOT EXISTS share_to_group_enabled BOOLEAN DEFAULT false;
         `);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_pages_user_id ON pages(user_id)`);
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC)`);
         await db.query(`CREATE INDEX IF NOT EXISTS idx_pages_page_id ON pages(page_id)`);
         console.log('✅ Performance indexes verified.');
     } catch (err) {

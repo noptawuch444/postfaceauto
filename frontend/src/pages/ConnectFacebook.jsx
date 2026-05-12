@@ -10,6 +10,32 @@ function ConnectFacebook() {
     const [pageId, setPageId] = useState('');
     const [pageToken, setPageToken] = useState('');
     const token = localStorage.getItem('token');
+    const navigate = useNavigate();
+
+    const handleConnect = async () => {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/facebook/auth-url', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                setError('ไม่สามารถรับ URL การเชื่อมต่อได้');
+                setLoading(false);
+            }
+        } catch (err) {
+            setError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            setLoading(false);
+        }
+    };
 
     const handleManualConnect = async (e) => {
         e.preventDefault();
@@ -72,10 +98,10 @@ function ConnectFacebook() {
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                     <h2 style={{ fontSize: '24px', fontWeight: '700', color: V.pri, marginBottom: '8px' }}>
-                        เพิ่มเพจลูกค้า (Manual Connect)
+                        เพิ่มเพจเข้าระบบ
                     </h2>
                     <p style={{ color: V.txtM, fontSize: '14px' }}>
-                        นำ Page ID และ Access Token ของลูกค้ามากรอกที่นี่เพื่อเชื่อมต่อระบบ
+                        ดึงเพจทั้งหมดที่คุณเป็นแอดมิน หรือเพิ่มด้วยตัวเอง
                     </p>
                 </div>
 
@@ -90,6 +116,30 @@ function ConnectFacebook() {
                         <AlertCircle size={16} /> {success}
                     </div>
                 )}
+
+                <div style={{ marginBottom: '30px' }}>
+                    <button 
+                        onClick={handleConnect}
+                        disabled={loading}
+                        style={{
+                            width: '100%', padding: '16px', background: '#1877F2', color: '#fff', border: 'none',
+                            borderRadius: '10px', fontSize: '16px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                            transition: 'opacity 0.2s', opacity: loading ? 0.7 : 1
+                        }}
+                    >
+                        {loading ? <Loader2 size={20} className="adm-spin" /> : 'ดึงเพจทั้งหมดจาก Facebook อัตโนมัติ'}
+                    </button>
+                    <p style={{ textAlign: 'center', fontSize: '12px', color: V.txtM, marginTop: '10px' }}>
+                        *แนะนำสำหรับแอดมิน: ดึงทุกเพจที่คุณดูแลเข้ามาในระบบทันที
+                    </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', color: V.txtM }}>
+                    <div style={{ flex: 1, height: '1px', background: V.bdr }}></div>
+                    <span style={{ padding: '0 15px', fontSize: '14px' }}>หรือเพิ่มทีละเพจ (Manual)</span>
+                    <div style={{ flex: 1, height: '1px', background: V.bdr }}></div>
+                </div>
 
                 <form onSubmit={handleManualConnect}>
                     <div style={{ marginBottom: '20px' }}>

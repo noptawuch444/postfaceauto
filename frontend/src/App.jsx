@@ -51,14 +51,10 @@ function App() {
         <Router>
             <div style={{ position: 'relative', minHeight: '100vh' }}>
                 <Routes>
-                    {/* Auth Routes */}
                     <Route path="/login" element={
                         isAuthenticated ? <Navigate to="/admin/dashboard" /> : <AdminLogin onLogin={login} />
                     } />
                     <Route path="/admin/login" element={<Navigate to="/login" />} />
-                    <Route path="/register" element={
-                        isAuthenticated ? <Navigate to="/admin/dashboard" /> : <Register onLogin={login} />
-                    } />
 
                     <Route element={<AdminLayout isAuthenticated={isAuthenticated} onLogout={logout} user={user} />}>
                         <Route path="/admin/dashboard" element={

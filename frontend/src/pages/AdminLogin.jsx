@@ -118,11 +118,7 @@ function AdminLogin({ onLogin }) {
                             {loading ? <Loader2 size={20} className="adm-spin" /> : 'ยืนยันเพื่อเข้าสู่ระบบ'}
                         </button>
                     </form>
-                    <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                        <p style={{ color: V.txtM, fontSize: '14px' }}>
-                            ยังไม่มีบัญชี? <Link to="/register" style={{ color: V.pri, textDecoration: 'none', fontWeight: '700' }}>สร้างบัญชีใหม่</Link>
-                        </p>
-                    </div>
+
                 </div>
 
                 <div style={{

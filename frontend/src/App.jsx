@@ -1,24 +1,28 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import AdminLayout from './components/AdminLayout';
 import PublicLayout from './components/PublicLayout';
+import { Loader2 } from 'lucide-react';
 
+// Lazy Load Pages
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PagesManage = lazy(() => import('./pages/PagesManage'));
+const TemplatesManage = lazy(() => import('./pages/TemplatesManage'));
+const PostsManage = lazy(() => import('./pages/PostsManage'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const ConnectFacebook = lazy(() => import('./pages/ConnectFacebook'));
+const Waiting = lazy(() => import('./pages/Waiting'));
+const PublicPost = lazy(() => import('./pages/PublicPost'));
+const FacebookCallback = lazy(() => import('./pages/FacebookCallback'));
 
-// Admin Pages
-import AdminLogin from './pages/AdminLogin';
-import Register from './pages/Register'; // [NEW]
-import Dashboard from './pages/Dashboard';
-import PagesManage from './pages/PagesManage';
-import TemplatesManage from './pages/TemplatesManage';
-import PostsManage from './pages/PostsManage';
-import AdminSettings from './pages/AdminSettings';
-
-// Public Pages
-import ConnectFacebook from './pages/ConnectFacebook';
-import Waiting from './pages/Waiting';
-import PublicPost from './pages/PublicPost';
-import FacebookCallback from './pages/FacebookCallback';
-import { PrivacyPolicy, TermsOfService, DataDeletion } from './pages/PolicyPages';
+// Loading Screen
+const PageLoader = () => (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0b' }}>
+        <Loader2 className="animate-spin" size={40} style={{ color: '#c9a84c' }} />
+    </div>
+);
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -56,46 +60,55 @@ function App() {
     return (
         <Router>
             <div style={{ position: 'relative', minHeight: '100vh' }}>
-                <Routes>
-                    <Route path="/login" element={
-                        isAuthenticated ? <Navigate to="/admin/dashboard" /> : <AdminLogin onLogin={login} />
-                    } />
-                    <Route path="/admin/login" element={<Navigate to="/login" />} />
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                        <Route path="/login" element={
+                            isAuthenticated ? <Navigate to="/admin/dashboard" /> : <AdminLogin onLogin={login} />
+                        } />
+                        <Route path="/admin/login" element={<Navigate to="/login" />} />
 
-                    <Route element={<AdminLayout isAuthenticated={isAuthenticated} onLogout={logout} user={user} />}>
-                        <Route path="/admin/dashboard" element={
-                            user?.role === 'admin' ? <Dashboard /> : <Navigate to="/admin/pages" />
-                        } />
-                        <Route path="/admin/pages" element={<PagesManage user={user} />} />
-                        <Route path="/admin/templates" element={
-                            user?.role === 'admin' ? <TemplatesManage /> : <Navigate to="/admin/pages" />
-                        } />
-                        <Route path="/admin/posts" element={
-                            user?.role === 'admin' ? <PostsManage /> : <Navigate to="/admin/pages" />
-                        } />
-                        <Route path="/admin/settings" element={
-                            user?.role === 'admin' ? <AdminSettings /> : <Navigate to="/admin/pages" />
-                        } />
-                    </Route>
+                        <Route element={<AdminLayout isAuthenticated={isAuthenticated} onLogout={logout} user={user} />}>
+                            <Route path="/admin/dashboard" element={
+                                user?.role === 'admin' ? <Dashboard /> : <Navigate to="/admin/pages" />
+                            } />
+                            <Route path="/admin/pages" element={<PagesManage user={user} />} />
+                            <Route path="/admin/templates" element={
+                                user?.role === 'admin' ? <TemplatesManage /> : <Navigate to="/admin/pages" />
+                            } />
+                            <Route path="/admin/posts" element={
+                                user?.role === 'admin' ? <PostsManage /> : <Navigate to="/admin/pages" />
+                            } />
+                            <Route path="/admin/settings" element={
+                                user?.role === 'admin' ? <AdminSettings /> : <Navigate to="/admin/pages" />
+                            } />
+                        </Route>
 
-                    {/* Public/Shared Routes */}
-                    <Route element={<PublicLayout />}>
-                        <Route path="/connect-facebook" element={<ConnectFacebook />} />
-                        <Route path="/facebook/callback" element={<FacebookCallback />} />
-                        <Route path="/waiting" element={<Waiting />} />
-                        <Route path="/public/:slug" element={<PublicPost />} />
-                        <Route path="/privacy" element={<PrivacyPolicy />} />
-                        <Route path="/terms" element={<TermsOfService />} />
-                        <Route path="/data-deletion" element={<DataDeletion />} />
-                    </Route>
+                        {/* Public/Shared Routes */}
+                        <Route element={<PublicLayout />}>
+                            <Route path="/connect-facebook" element={<ConnectFacebook />} />
+                            <Route path="/facebook/callback" element={<FacebookCallback />} />
+                            <Route path="/waiting" element={<Waiting />} />
+                            <Route path="/public/:slug" element={<PublicPost />} />
+                            
+                            {/* Policy pages - we load them from the lazy container */}
+                            <Route path="/privacy" element={<PrivacyPolicy />} />
+                            <Route path="/terms" element={<TermsOfService />} />
+                            <Route path="/data-deletion" element={<DataDeletion />} />
+                        </Route>
 
-                    {/* Default Redirects */}
-                    <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-                    <Route path="/" element={<Navigate to={isAuthenticated ? "/admin/dashboard" : "/login"} />} />
-                </Routes>
+                        {/* Default Redirects */}
+                        <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
+                        <Route path="/" element={<Navigate to={isAuthenticated ? "/admin/dashboard" : "/login"} />} />
+                    </Routes>
+                </Suspense>
             </div>
         </Router>
     );
 }
+
+// Named export lazy wrappers
+const PrivacyPolicy = lazy(() => import('./pages/PolicyPages').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./pages/PolicyPages').then(m => ({ default: m.TermsOfService })));
+const DataDeletion = lazy(() => import('./pages/PolicyPages').then(m => ({ default: m.DataDeletion })));
 
 export default App;

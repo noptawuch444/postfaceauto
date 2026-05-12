@@ -25,6 +25,12 @@ function App() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
+        // Redirect from old Render domain to Vercel
+        if (window.location.hostname.includes('onrender.com')) {
+            window.location.href = 'https://postfaceauto.vercel.app' + window.location.pathname + window.location.search;
+            return;
+        }
+
         if (isAuthenticated) {
             fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }

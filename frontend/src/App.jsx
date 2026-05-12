@@ -18,6 +18,7 @@ import ConnectFacebook from './pages/ConnectFacebook';
 import Waiting from './pages/Waiting';
 import PublicPost from './pages/PublicPost';
 import FacebookCallback from './pages/FacebookCallback';
+import { PrivacyPolicy, TermsOfService, DataDeletion } from './pages/PolicyPages';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -81,6 +82,9 @@ function App() {
                         <Route path="/facebook/callback" element={<FacebookCallback />} />
                         <Route path="/waiting" element={<Waiting />} />
                         <Route path="/public/:slug" element={<PublicPost />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/terms" element={<TermsOfService />} />
+                        <Route path="/data-deletion" element={<DataDeletion />} />
                     </Route>
 
                     {/* Default Redirects */}

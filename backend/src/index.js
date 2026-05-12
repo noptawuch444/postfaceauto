@@ -44,7 +44,7 @@ const axios = require('axios');
 
 const startKeepAlive = () => {
     const interval = 5 * 60 * 1000; // 5 minutes (Render sleeps after ~15 min of inactivity)
-    const publicUrl = process.env.RENDER_EXTERNAL_URL || 'https://goldsyncbotface.onrender.com';
+    const publicUrl = process.env.RENDER_EXTERNAL_URL || 'https://postfaceauto-backend.onrender.com';
     setInterval(async () => {
         try {
             // Ping the public URL (not localhost!) to keep Render instance active

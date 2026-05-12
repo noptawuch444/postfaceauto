@@ -22,7 +22,6 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
             JOIN templates t ON p.template_id = t.id
             JOIN pages pg ON t.page_id = pg.page_id
             ORDER BY p.created_at DESC
-            LIMIT 200
         `);
         res.json(result.rows);
     } catch (error) {

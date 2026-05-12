@@ -266,7 +266,7 @@ router.post('/:slug/history', async (req, res) => {
              FROM posts p
              JOIN templates t ON p.template_id = t.id
              WHERE p.template_id = $1
-             ORDER BY p.created_at DESC LIMIT 50`,
+             ORDER BY p.created_at DESC`,
             [template.id]
         );
 

@@ -37,7 +37,7 @@ async function addLog(type, msg, data = null) {
 // GET /api/webhook/logs - View recent webhook events (persistent from DB)
 router.get('/logs', async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 50');
+        const result = await db.query('SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 200');
         res.json({ total: result.rows.length, logs: result.rows });
     } catch (e) {
         res.json({ total: 0, logs: [], error: e.message });

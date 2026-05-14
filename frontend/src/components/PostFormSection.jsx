@@ -191,13 +191,30 @@ const PostFormSection = ({
 
                     {!postNow && (
                         <div style={{ animation: 'fadeSlideIn 0.3s ease-out', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <div style={{ position: 'relative', height: '54px', cursor: 'pointer' }} onClick={() => document.getElementById('gs-date-input').showPicker()}>
-                                <input id="gs-date-input" type="date" value={splitTime.date} onChange={e => handleDateChange(e.target.value)} style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', pointerEvents: 'none' }} />
-                                <div style={{ height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '10px', boxSizing: 'border-box' }}>
+                            {/* Date picker - native input overlaid for full mobile compatibility */}
+                            <div style={{ position: 'relative', height: '54px' }}>
+                                <div style={{ height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '10px', boxSizing: 'border-box', pointerEvents: 'none' }}>
                                     <Calendar size={16} style={{ color: V.pri }} />
                                     <div style={{ fontSize: '14px', fontWeight: '800', color: V.pri }}>{getThaiDateLabel(splitTime.date)}</div>
                                 </div>
+                                <input
+                                    id="gs-date-input"
+                                    type="date"
+                                    value={splitTime.date}
+                                    onChange={e => handleDateChange(e.target.value)}
+                                    style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        opacity: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        cursor: 'pointer',
+                                        zIndex: 5,
+                                        fontSize: '16px'  /* prevents iOS auto-zoom */
+                                    }}
+                                />
                             </div>
+                            {/* Time input */}
                             <div style={{ position: 'relative', height: '54px' }}>
                                 <div style={{ height: '100%', background: '#0a0a0a', border: `1.5px solid ${V.pri}`, borderRadius: '12px', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '6px', boxSizing: 'border-box' }}>
                                     <Clock size={16} style={{ color: V.pri }} />

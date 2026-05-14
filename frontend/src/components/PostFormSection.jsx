@@ -268,6 +268,19 @@ const PostFormSection = ({
                 @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
                 @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
                 @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+                
+                /* Force date picker to open when clicking anywhere on the input */
+                #gs-date-input::-webkit-calendar-picker-indicator {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
+                    cursor: pointer;
+                    opacity: 0;
+                }
             `}</style>
         </div>
     );

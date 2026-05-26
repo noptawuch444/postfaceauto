@@ -40,22 +40,9 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 // Start scheduler & Run Migration
 const { runMigrations } = require('./migration');
 const { startScheduler } = require('./services/scheduler');
-const axios = require('axios');
-
-const startKeepAlive = () => {
-    const interval = 5 * 60 * 1000; // 5 minutes (Render sleeps after ~15 min of inactivity)
-    const publicUrl = process.env.RENDER_EXTERNAL_URL || 'https://postfaceauto-backend.onrender.com';
-    setInterval(async () => {
-        try {
-            // Ping the public URL (not localhost!) to keep Render instance active
-            const url = `${publicUrl}/api/health`;
-            await axios.get(url, { timeout: 10000 });
-            console.log(`⏰ [KEEP-ALIVE] Heartbeat sent to ${url}`);
-        } catch (err) {
-            console.error('❌ [KEEP-ALIVE] Heartbeat failed:', err.message);
-        }
-    }, interval);
-};
+// Note: Keep-Alive ถูกลบออกเพื่อประหยัด compute hours บน Render Free Plan
+// ใช้ UptimeRobot (https://uptimerobot.com) แทน — ฟรีและ ping ทุก 5 นาทีจากภายนอก
+// Monitor URL: https://postfaceauto-backend.onrender.com/api/health
 
 app.listen(PORT, async () => {
     console.log(`\n🚀 AutoPost Backend running on http://localhost:${PORT}`);
@@ -65,9 +52,8 @@ app.listen(PORT, async () => {
     await runMigrations();
 
     startScheduler();
-    startKeepAlive();
 
-    // Start Comment Poller (polls Facebook Graph API for new comments every 30s)
+    // Start Comment Poller (polls Facebook Graph API for new comments)
     const { startCommentPoller } = require('./services/commentPoller');
     startCommentPoller();
 });

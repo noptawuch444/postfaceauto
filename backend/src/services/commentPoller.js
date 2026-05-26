@@ -12,7 +12,7 @@ const fetch = require('node-fetch');
 const db = require('../db');
 
 const FB_GRAPH = 'https://graph.facebook.com/v18.0';
-const POLL_INTERVAL = 30 * 1000; // 30 seconds
+const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutes (ลดจาก 30s เพื่อประหยัด compute hours)
 
 // Track which comments we've already replied to (in DB)
 async function ensureTable() {
